@@ -1,0 +1,48 @@
+# OS and logs
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Python helper cache
+__pycache__/
+*.py[cod]
+
+# IDEs and local tooling
+.idea/
+.vscode/
+.claude/
+*.iml
+*.ipr
+*.iws
+
+# Dart / Flutter / Pub
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub/
+.pub-cache/
+build/
+coverage/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+app.*.symbols
+app.*.map.json
+
+# Firebase local cache
+.firebase/
+firebase-debug.log*
+
+# Legacy / misc build folders
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
