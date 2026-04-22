@@ -4,12 +4,16 @@ import '../models/word.dart';
 import '../services/asset_service.dart';
 import '../services/storage_service.dart';
 
+enum StudyDeckMode { normal, reviewLeftSwiped }
+
 final assetServiceProvider = Provider<AssetService>((ref) => AssetService());
 
 final storageServiceProvider = Provider<StorageService>((ref) => StorageService());
 
 /// null = all levels
 final selectedLevelProvider = StateProvider<String?>((ref) => 'A1');
+final studyDeckModeProvider =
+    StateProvider<StudyDeckMode>((ref) => StudyDeckMode.normal);
 
 /// Whether seeding is complete
 final seedingProvider = FutureProvider<void>((ref) async {
@@ -22,8 +26,11 @@ final seedingProvider = FutureProvider<void>((ref) async {
 final wordDeckProvider = FutureProvider<List<Word>>((ref) async {
   await ref.watch(seedingProvider.future);
   final level = ref.watch(selectedLevelProvider);
+  final mode = ref.watch(studyDeckModeProvider);
   final storage = ref.read(storageServiceProvider);
-  final words = storage.getWordsByLevel(level);
+  final words = mode == StudyDeckMode.reviewLeftSwiped
+      ? storage.getReviewWordsByLevel(level)
+      : storage.getStudyWordsByLevel(level);
   words.shuffle(Random());
   return words.take(200).toList();
 });

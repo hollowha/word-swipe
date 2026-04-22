@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/word.dart';
 import '../models/swipe_record.dart';
+import '../models/word_insight.dart';
 import '../services/dictionary_service.dart';
+import '../services/haptics_service.dart';
 import '../services/storage_service.dart';
 import 'word_providers.dart';
 
@@ -24,15 +26,29 @@ class SwipeNotifier extends StateNotifier<SwipeState> {
 
   SwipeNotifier(this._storage) : super(const SwipeState());
 
-  Future<void> swipeRight(Word word) async {
+  Future<void> swipeRight(
+    Word word, {
+    required String inputSource,
+  }) async {
     // Update index immediately so the UI responds without waiting for Hive
     state = state.copyWith(currentIndex: state.currentIndex + 1);
-    _storage.recordSwipe(word.id, 'right'); // fire-and-forget
+    _storage.recordSwipe(
+      word.id,
+      'right',
+      inputSource: inputSource,
+    ); // fire-and-forget
   }
 
-  Future<void> swipeLeft(Word word) async {
+  Future<void> swipeLeft(
+    Word word, {
+    required String inputSource,
+  }) async {
     state = state.copyWith(currentIndex: state.currentIndex + 1);
-    _storage.recordSwipe(word.id, 'left');
+    _storage.recordSwipe(
+      word.id,
+      'left',
+      inputSource: inputSource,
+    );
   }
 
   void markComplete() {
@@ -68,6 +84,12 @@ final swipeRecordProvider = Provider.family<SwipeRecord, String>((ref, wordId) {
 
 final dictionaryServiceProvider =
     Provider<DictionaryService>((ref) => DictionaryService());
+final hapticsServiceProvider = Provider<HapticsService>((ref) => HapticsService());
+
+final wordInsightProvider = Provider.family<WordInsight, String>((ref, wordId) {
+  final storage = ref.read(storageServiceProvider);
+  return storage.getInsight(wordId);
+});
 
 final definitionProvider =
     FutureProvider.family<Word, String>((ref, wordId) async {

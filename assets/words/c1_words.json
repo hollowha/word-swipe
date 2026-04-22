@@ -1,155 +1,5 @@
 [
   {
-    "id": "a--a",
-    "word": "a--a",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-a-a",
-    "word": "a-a-a",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-are",
-    "word": "a-are",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-hole",
-    "word": "a-hole",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-list",
-    "word": "a-list",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-okay",
-    "word": "a-okay",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-one",
-    "word": "a-one",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-plus",
-    "word": "a-plus",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaaaaah",
-    "word": "aaaaaah",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaaargh",
-    "word": "aaaargh",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaagh",
-    "word": "aaagh",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaahh",
-    "word": "aaahh",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaahhh",
-    "word": "aaahhh",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aahh",
-    "word": "aahh",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aahhh",
-    "word": "aahhh",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
     "id": "aardvark",
     "word": "aardvark",
     "cefrLevel": "C1",
@@ -2780,16 +2630,6 @@
     "definitionLoaded": false
   },
   {
-    "id": "aghh",
-    "word": "aghh",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
     "id": "agility",
     "word": "agility",
     "cefrLevel": "C1",
@@ -3002,26 +2842,6 @@
   {
     "id": "ah-ha-ha",
     "word": "ah-ha-ha",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "ahhhhh",
-    "word": "ahhhhh",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "ahhhhhh",
-    "word": "ahhhhhh",
     "cefrLevel": "C1",
     "partOfSpeech": "",
     "phonetic": "",
@@ -7910,16 +7730,6 @@
     "definitionLoaded": false
   },
   {
-    "id": "arggh",
-    "word": "arggh",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
     "id": "argo",
     "word": "argo",
     "cefrLevel": "C1",
@@ -8422,16 +8232,6 @@
   {
     "id": "arrears",
     "word": "arrears",
-    "cefrLevel": "C1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "arrgh",
-    "word": "arrgh",
     "cefrLevel": "C1",
     "partOfSpeech": "",
     "phonetic": "",
@@ -39992,6 +39792,206 @@
   {
     "id": "danbury",
     "word": "danbury",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "dandelion",
+    "word": "dandelion",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "dandelions",
+    "word": "dandelions",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "dandi",
+    "word": "dandi",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "dandruff",
+    "word": "dandruff",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "danforth",
+    "word": "danforth",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "dangled",
+    "word": "dangled",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "danica",
+    "word": "danica",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "daniele",
+    "word": "daniele",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "daniella",
+    "word": "daniella",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "danilo",
+    "word": "danilo",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "dank",
+    "word": "dank",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "danner",
+    "word": "danner",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "danno",
+    "word": "danno",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "dans",
+    "word": "dans",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "danson",
+    "word": "danson",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "danton",
+    "word": "danton",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "danville",
+    "word": "danville",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "dany",
+    "word": "dany",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "danzig",
+    "word": "danzig",
+    "cefrLevel": "C1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "danziger",
+    "word": "danziger",
     "cefrLevel": "C1",
     "partOfSpeech": "",
     "phonetic": "",

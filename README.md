@@ -1,240 +1,194 @@
 # WordSwipe
 
-Tinder-style English vocabulary learning web app built with Flutter.  
-Swipe right = familiar, swipe left = still learning. 20,000 CEFR-classified words, offline-first, deployed on Firebase Hosting.
+WordSwipe is a Flutter web app for learning English vocabulary with a swipe-based study flow.
+Swipe right means "I know this"; swipe left means "this is still new to me."
 
-**Live:** https://wordswipe-c7bfe.web.app
+WordSwipe 是一個用 Flutter 製作的英文單字學習 Web App。
+右滑代表「我會了」，左滑代表「這個字我還不熟」。
 
----
+Live site: https://wordswipe-c7bfe.web.app
 
-## Features
+## Overview | 專案概覽
 
-- Swipe cards left / right (drag or tap buttons) to mark familiarity
-- Tap any card to flip and see full definition, phonetic, part of speech, example sentence
-- Definitions fetched on-demand from [Free Dictionary API](https://api.dictionaryapi.dev) with lemmatisation fallback (handles -ing / -ed / -s / -ly / -er / -tion forms)
-- Definitions are prefetched for the next 5 cards silently — tap-to-flip is instant after first load
-- Next card is always visible behind the active card, scales in as you drag
-- 20,000 words split across 6 CEFR levels: A1 → A2 → B1 → B2 → C1 → C2
-- Per-word swipe counts persisted in Hive (IndexedDB on web) — survives page refresh
-- Progress dashboard: per-level familiar / seen / remaining
-- Filter by CEFR level; each session serves up to 200 shuffled cards
-- Flutter web only (no iOS / Android targets configured)
+- Swipe cards with gestures or buttons
+- Tap a card to flip and reveal definition, phonetic, example, and word-building hints
+- Study by CEFR levels from `A1` to `C2`
+- Review words that were previously marked as new
+- Keep progress locally with Hive on web
+- Bundle offline word and insight assets into the app
 
----
+這個專案目前以 Web 體驗為主，資料採離線優先設計。
+單字與 insight 資料會隨 repo 一起版本控管，讓協作者 pull 下來後能直接跑起來，不需要先重建資料。
 
-## Project Structure
+## Stack | 技術組成
 
-```
-wordSwipe/
-├── lib/
-│   ├── main.dart               # App entry: Hive init, register adapters, openBoxes, runApp
-│   ├── app.dart                # MaterialApp.router + GoRouter (2 routes: / and /dashboard)
-│   ├── theme.dart              # AppTheme — colours, typography constants, ThemeData
-│   │
-│   ├── models/
-│   │   ├── word.dart           # Word (HiveType 0) + JSON serialisation
-│   │   ├── word.g.dart         # ← generated (build_runner)
-│   │   ├── swipe_record.dart   # SwipeRecord (HiveType 1)
-│   │   └── swipe_record.g.dart # ← generated
-│   │
-│   ├── services/
-│   │   ├── asset_service.dart      # Loads JSON assets from assets/words/ by CEFR level
-│   │   ├── storage_service.dart    # Hive box access, first-run seeding, stats aggregation
-│   │   └── dictionary_service.dart # Free Dictionary API + lemmatisation retry logic
-│   │
-│   ├── providers/
-│   │   ├── word_providers.dart   # selectedLevelProvider, seedingProvider, wordDeckProvider
-│   │   └── swipe_providers.dart  # swipeProvider, cardFlippedProvider, definitionProvider
-│   │
-│   ├── screens/
-│   │   ├── swipe_screen.dart     # Main screen: level tabs, card stack, swipe buttons
-│   │   └── dashboard_screen.dart # Progress screen: hero stat, per-level rows
-│   │
-│   └── widgets/
-│       ├── cefr_badge.dart       # Coloured CEFR level pill
-│       ├── word_card_front.dart  # Card front: word + phonetic + tap hint
-│       ├── word_card_back.dart   # Card back: full definition (watches definitionProvider)
-│       └── swipe_buttons.dart    # Animated ✕ / ✓ circle buttons
-│
-├── assets/
-│   └── words/
-│       ├── a1_words.json   # 1,500 words
-│       ├── a2_words.json   # 2,500 words
-│       ├── b1_words.json   # 4,000 words
-│       ├── b2_words.json   # 5,000 words
-│       ├── c1_words.json   # 4,000 words
-│       └── c2_words.json   # 3,000 words
-│
-├── scripts/
-│   └── generate_words.py   # One-time script to regenerate the word JSON files
-│
-├── web/
-│   ├── index.html          # Sets bg colour #F1F0ED to avoid white flash on load
-│   └── manifest.json
-│
-├── firebase.json           # Hosting config: public=build/web, SPA rewrite, cache headers
-├── .firebaserc             # Firebase project: wordswipe-c7bfe
-└── pubspec.yaml
-```
+- Flutter 3 / Dart
+- Riverpod for state management
+- Hive for local persistence
+- GoRouter for routing
+- Python scripts for word and insight generation
+- Firebase Hosting for deployment
 
----
+## Quick Start | 快速開始
 
-## Architecture Notes
+### Prerequisites | 先備需求
 
-### State management — Riverpod
+- Flutter SDK
+- Python 3.10+ recommended
+- Chrome or another browser supported by Flutter web
 
-| Provider | Type | Purpose |
-|---|---|---|
-| `selectedLevelProvider` | `StateProvider<String?>` | Active CEFR filter (null = all) |
-| `seedingProvider` | `FutureProvider<void>` | One-time Hive seeding from JSON assets |
-| `wordDeckProvider` | `FutureProvider<List<Word>>` | Deck for current level, shuffled, max 200 |
-| `swipeProvider` | `StateNotifierProvider<SwipeNotifier>` | Current card index, completion flag |
-| `cardFlippedProvider` | `StateProvider.family<bool, int>` | Per-card flip state (autoDispose) |
-| `definitionProvider` | `FutureProvider.family<Word, String>` | Lazy-fetch definition by wordId; **no autoDispose** so resolved futures stay cached for the session |
-
-### Persistence — Hive
-
-| Box | Key type | Value type | Notes |
-|---|---|---|---|
-| `words` | `String` (wordId) | `Word` | Seeded from JSON on first run; updated when definitions are fetched |
-| `swipe_records` | `String` (wordId) | `SwipeRecord` | rightCount, leftCount, lastSwipedAt |
-| `meta` | `String` | `dynamic` | `words_seeded: bool` flag |
-
-First-run seeding loads all 6 JSON files in parallel, writes ~20k Word objects to Hive, then sets `meta['words_seeded'] = true`. Subsequent launches skip this step.
-
-### Card stack design
-
-The swipe experience uses a hybrid approach to avoid the `flutter_card_swiper` multi-card transition flicker:
-
-- `CardSwiper` is configured with `numberOfCardsDisplayed: 1` (owns swipe physics only)
-- A separate `_PreviewCard` widget is rendered in a `Stack` *behind* the swiper
-- `ValueNotifier<double> _drag` is updated every frame from `cardBuilder`'s `percentX`
-- `ValueListenableBuilder` drives `Transform.scale` (0.93→1.0) and `Transform.translate` (y: 18→0) on the preview card with `Curves.easeOut`
-- On `onSwipe`, `setState(() => _topIndex++)` advances the preview word immediately
-
-### Definition prefetch
-
-`_CardAreaState` calls `ref.read(definitionProvider(id).future).ignore()` for the next 5 cards on `initState` and after each `onSwipe`. Since `definitionProvider` has no `autoDispose`, the resolved `Future` stays cached in the Riverpod container. When the user taps to flip a card, `ref.watch(definitionProvider(id))` returns `AsyncData` synchronously.
-
-### Lemmatisation fallback
-
-`DictionaryService._candidates(word)` generates up to 5 candidate forms tried in order:
-1. Original word
-2. `-ing` → base (dancing→dance, running→run)
-3. `-ed` → base (played→play, danced→dance)
-4. `-s/-es/-ies/-ves` → singular/base
-5. `-ly` → adjective (quickly→quick)
-6. `-er/-est` → positive (faster→fast)
-7. `-tion/-ation` → verb (creation→create, action→act)
-
----
-
-## Prerequisites
-
-- Flutter SDK ≥ 3.4 ([install](https://docs.flutter.dev/get-started/install))
-- Dart SDK ≥ 3.4 (bundled with Flutter)
-- Firebase CLI (`npm install -g firebase-tools`) — only needed for deployment
-- Python 3 + `pip install requests` — only needed to regenerate word lists
-
----
-
-## Common Commands
-
-### Development
+### Install | 安裝
 
 ```bash
-# Run in Chrome (hot reload enabled)
+flutter pub get
+python -m pip install -r scripts/requirements.txt
+```
+
+### Run Locally | 本機啟動
+
+```bash
 flutter run -d chrome
+```
 
-# Run with a specific port
-flutter run -d chrome --web-port 8080
+### Validate Before Sharing | 分享前驗證
 
-# Static analysis
-flutter analyze
-
-# Run tests
+```bash
 flutter test
-```
-
-### Code generation
-
-Run this whenever you modify `word.dart` or `swipe_record.dart` (Hive adapters + JSON serialisation):
-
-```bash
-dart run build_runner build --delete-conflicting-outputs
-```
-
-### Production build
-
-```bash
-# Standard build (CanvasKit renderer, ~2 MB)
 flutter build web --release
-
-# WebAssembly build — faster runtime, larger initial load
-flutter build web --release --wasm
-
-# Build with a custom base path (e.g. subdirectory hosting)
-flutter build web --release --base-href /app/
 ```
 
-Build output lands in `build/web/`.
+`flutter build web --release` is recommended before opening a PR if you changed UI, routing, assets, or deployment-related behavior.
 
-### Firebase Hosting
+如果你改到 UI、路由、資產或部署相關內容，建議在送 PR 前至少跑一次 `flutter build web --release`。
+
+## Project Layout | 目錄重點
+
+```text
+wordSwipe/
+  lib/          Flutter app source
+  assets/       Tracked study data used by the app
+  scripts/      Python helpers for generating word and insight assets
+  test/         Flutter and storage tests
+  web/          Web entry assets and manifest
+  firebase.json Firebase Hosting config
+  pubspec.yaml  Flutter package manifest
+```
+
+### Important Directories | 重要目錄
+
+- `lib/`: app UI, providers, services, and models
+- `assets/words/`: generated CEFR word lists committed to git
+- `assets/insights/`: generated offline insight data committed to git
+- `scripts/data/`: source files used by generation scripts
+- `test/`: regression coverage for widgets and storage behavior
+
+## Development Workflow | 開發流程
+
+### Typical Daily Flow | 日常協作流程
+
+1. Pull the latest changes.
+2. Run `flutter pub get`.
+3. Run `python -m pip install -r scripts/requirements.txt` if script dependencies changed.
+4. Start the app with `flutter run -d chrome`.
+5. Run `flutter test` before committing.
+
+### What Is Tracked in Git | 哪些內容會進 git
+
+- App source in `lib/`
+- Generated study assets in `assets/words/` and `assets/insights/`
+- Script source and input files in `scripts/`
+- `pubspec.lock` so collaborators use a consistent dependency graph
+
+### What Should Stay Local | 哪些內容應只留在本機
+
+- Flutter build output such as `build/`
+- Dart and pub caches such as `.dart_tool/`
+- Python virtual environments and caches
+- Firebase debug logs and local tool state
+- Hive runtime data created by the app during development
+
+## Data Pipeline | 資料產線
+
+The app ships with generated JSON assets already committed in the repo.
+Most contributors do not need to regenerate them unless they are intentionally updating vocabulary data, filters, or morphology sources.
+
+專案內已經提交了可直接使用的 JSON 資產。
+除非你要修改單字資料、過濾規則或 morphology 來源，否則一般協作者不需要先跑資料重建。
+
+### Rebuild Word Assets | 重建單字資產
+
+`assets/words/*.json` are generated by `scripts/generate_words.py`.
 
 ```bash
-# One-time login (opens browser)
-firebase login
+python scripts/generate_words.py
+```
 
-# Preview locally before deploying (serves build/web on localhost:5000)
-firebase serve --only hosting
+This script downloads source word lists, applies filtering, and writes CEFR-separated word files used by the app.
 
-# Deploy to production
+### Rebuild Insight Assets | 重建 Insight 資產
+
+`assets/insights/*.json` are generated by `scripts/generate_insights.py`.
+
+```bash
+python -u scripts/generate_insights.py --workers 8
+```
+
+Optional partial rebuild:
+
+```bash
+python -u scripts/generate_insights.py --levels B2 C1 C2 --workers 8
+```
+
+The insight generator reads:
+
+- `assets/words/*.json`
+- morphology spreadsheets under `scripts/data/morphology/`
+- online dictionary sources at generation time
+
+## Collaboration Notes | 協作注意事項
+
+- Generated assets in `assets/words/` and `assets/insights/` are source-controlled on purpose.
+- If you regenerate those assets, review the diff carefully before committing.
+- Avoid mixing feature work and large regenerated data changes in the same commit unless they are tightly related.
+- Do not commit local caches, virtual environments, build output, or debug logs.
+- Be careful with tracked generated files: pull latest changes first to reduce merge conflicts.
+
+這個 repo 把產生後的資料檔一起納入版本控制，是為了讓其他人 clone 後可以直接開發與測試。
+如果你重建了資料檔，請先確認 diff 是否合理，再決定要不要一起提交。
+
+## Testing | 測試
+
+Main verification commands:
+
+```bash
+flutter test
+flutter build web --release
+```
+
+The current automated coverage in this repo focuses on widget behavior and storage logic.
+
+## Deployment | 部署
+
+Firebase Hosting deployment is currently configured for the maintainer project in `.firebaserc`.
+
+```bash
+flutter build web --release
 firebase deploy --only hosting
-
-# Deploy to a preview channel (shareable URL, auto-expires in 7 days)
-firebase hosting:channel:deploy preview --expires 7d
-
-# View deployment history
-firebase hosting:releases:list
 ```
 
-Live URL after deploy: **https://wordswipe-c7bfe.web.app**  
-Firebase console: https://console.firebase.google.com/project/wordswipe-c7bfe/overview
+If you are a collaborator, assume deployment is maintainer-only unless you explicitly configure your own Firebase project.
 
-### Regenerate word list
+如果你不是目前 Firebase 專案的維護者，請把部署視為維護者專用流程；你可以改用自己的 Firebase 專案做驗證。
 
-Only needed if you want to refresh the 20,000-word JSON files (e.g. update CEFR mappings):
+## Repo Assumptions | 專案前提
 
-```bash
-cd scripts
-pip install requests
-python generate_words.py
-# Outputs: ../assets/words/{a1,a2,b1,b2,c1,c2}_words.json
-```
+- The app is currently web-first.
+- Hive data is runtime state and should not be committed.
+- Generated word and insight JSON files are app inputs and are intentionally committed.
+- The default Firebase target in `.firebaserc` belongs to the current maintainer setup.
 
-The script pulls from a public English frequency corpus and maps word ranks to CEFR levels. If Oxford 5000 CSV is available it overrides frequency-based labels.  
-After regenerating, run `flutter build web --release` and redeploy.
+## Contributing | 貢獻方式
 
----
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
-## Key Files for Common Tasks
-
-| Task | File(s) to edit |
-|---|---|
-| Change colour palette / typography | `lib/theme.dart` |
-| Add a new screen | `lib/screens/`, then register route in `lib/app.dart` |
-| Change how swipe counts are stored | `lib/services/storage_service.dart` |
-| Add a new Word field | `lib/models/word.dart` → run `build_runner` → migrate Hive data if needed |
-| Adjust definition fetch / retry logic | `lib/services/dictionary_service.dart` |
-| Change which words are in the deck | `lib/providers/word_providers.dart` (`wordDeckProvider`) |
-| Modify card UI | `lib/widgets/word_card_front.dart`, `lib/widgets/word_card_back.dart` |
-| Modify swipe stack / preview animation | `lib/screens/swipe_screen.dart` (`_CardArea`, `_PreviewCard`) |
-
----
-
-## Known Limitations
-
-- **No user accounts** — progress is stored in the browser's IndexedDB (Hive web backend). Clearing browser data resets all progress.
-- **Definition coverage** — the Free Dictionary API covers most common English words. Lemmatisation handles inflected forms but some rare words will show "Definition unavailable".
-- **Web only** — `flutter build apk` / `flutter build ios` will fail; `android/` and `ios/` directories do not exist.
-- **Hive migration** — if you add a new `@HiveField` to `Word` or `SwipeRecord`, bump the `typeId` or handle schema migration; existing users' IndexedDB data uses the old schema.
+送出 PR 前，請先看 [CONTRIBUTING.md](CONTRIBUTING.md)。

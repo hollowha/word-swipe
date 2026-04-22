@@ -7,10 +7,25 @@ Desktop.ini
 *.temp
 *.swp
 *.swo
+ehthumbs.db
+$RECYCLE.BIN/
 
 # Python helper cache
 __pycache__/
 *.py[cod]
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.hypothesis/
+.nox/
+.tox/
+.venv/
+venv/
+env/
+ENV/
+pip-wheel-metadata/
 
 # IDEs and local tooling
 .idea/
@@ -27,6 +42,7 @@ __pycache__/
 .packages
 .pub/
 .pub-cache/
+.flutter_tool_state
 build/
 coverage/
 **/doc/api/
@@ -37,6 +53,7 @@ app.*.map.json
 # Firebase local cache
 .firebase/
 firebase-debug.log*
+.firebaserc.local
 
 # Legacy / misc build folders
 .atom/
@@ -46,3 +63,8 @@ firebase-debug.log*
 .svn/
 .swiftpm/
 migrate_working_dir/
+
+# Local runtime / misc
+*.pid
+*.seed
+*.orig

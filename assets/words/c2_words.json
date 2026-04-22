@@ -1,317 +1,7 @@
 [
   {
-    "id": "a-a-and",
-    "word": "a-a-and",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-about",
-    "word": "a-about",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-actually",
-    "word": "a-actually",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-ah",
-    "word": "a-ah",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-all",
-    "word": "a-all",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-an",
-    "word": "a-an",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-as",
-    "word": "a-as",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-at",
-    "word": "a-at",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-comin",
-    "word": "a-comin",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-coming",
-    "word": "a-coming",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-frame",
-    "word": "a-frame",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-game",
-    "word": "a-game",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-going",
-    "word": "a-going",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-gonna",
-    "word": "a-gonna",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-holes",
-    "word": "a-holes",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-hunting",
-    "word": "a-hunting",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-level",
-    "word": "a-level",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-levels",
-    "word": "a-levels",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-minus",
-    "word": "a-minus",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-ok",
-    "word": "a-ok",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-rab",
-    "word": "a-rab",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-rod",
-    "word": "a-rod",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-two",
-    "word": "a-two",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-wasting",
-    "word": "a-wasting",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
     "id": "aaaa",
     "word": "aaaa",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaaaaaaah",
-    "word": "aaaaaaaah",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaaaaaah",
-    "word": "aaaaaaah",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaaagh",
-    "word": "aaaagh",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaaahhh",
-    "word": "aaaahhh",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaaahhhh",
-    "word": "aaaahhhh",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaahhhh",
-    "word": "aaahhhh",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaarrrgghh",
-    "word": "aaarrrgghh",
     "cefrLevel": "C2",
     "partOfSpeech": "",
     "phonetic": "",
@@ -3110,16 +2800,6 @@
     "definitionLoaded": false
   },
   {
-    "id": "aggh",
-    "word": "aggh",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
     "id": "aggregate",
     "word": "aggregate",
     "cefrLevel": "C2",
@@ -3162,16 +2842,6 @@
   {
     "id": "aghast",
     "word": "aghast",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aghhh",
-    "word": "aghhh",
     "cefrLevel": "C2",
     "partOfSpeech": "",
     "phonetic": "",
@@ -3452,26 +3122,6 @@
   {
     "id": "ahana",
     "word": "ahana",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "ahhhhhhh",
-    "word": "ahhhhhhh",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "ahhhhhhhh",
-    "word": "ahhhhhhhh",
     "cefrLevel": "C2",
     "partOfSpeech": "",
     "phonetic": "",
@@ -10160,16 +9810,6 @@
     "definitionLoaded": false
   },
   {
-    "id": "arghh",
-    "word": "arghh",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
     "id": "argit",
     "word": "argit",
     "cefrLevel": "C2",
@@ -10712,16 +10352,6 @@
   {
     "id": "arrr",
     "word": "arrr",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "arrrgh",
-    "word": "arrrgh",
     "cefrLevel": "C2",
     "partOfSpeech": "",
     "phonetic": "",
@@ -13792,16 +13422,6 @@
   {
     "id": "azumi",
     "word": "azumi",
-    "cefrLevel": "C2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "b-b-but",
-    "word": "b-b-but",
     "cefrLevel": "C2",
     "partOfSpeech": "",
     "phonetic": "",
@@ -29992,6 +29612,386 @@
   {
     "id": "cabled",
     "word": "cabled",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cablegram",
+    "word": "cablegram",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cabling",
+    "word": "cabling",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cabral",
+    "word": "cabral",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cabrera",
+    "word": "cabrera",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cabriolet",
+    "word": "cabriolet",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cabron",
+    "word": "cabron",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cacao",
+    "word": "cacao",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cacciatore",
+    "word": "cacciatore",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cace",
+    "word": "cace",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caches",
+    "word": "caches",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cachet",
+    "word": "cachet",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caco",
+    "word": "caco",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cacophony",
+    "word": "cacophony",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cacti",
+    "word": "cacti",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cactuses",
+    "word": "cactuses",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cadbury",
+    "word": "cadbury",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caddies",
+    "word": "caddies",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caddyshack",
+    "word": "caddyshack",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caden",
+    "word": "caden",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cadillacs",
+    "word": "cadillacs",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cadiz",
+    "word": "cadiz",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cadmium",
+    "word": "cadmium",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cadogan",
+    "word": "cadogan",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caen",
+    "word": "caen",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caetano",
+    "word": "caetano",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cafer",
+    "word": "cafer",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caff",
+    "word": "caff",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caffe",
+    "word": "caffe",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caffeinated",
+    "word": "caffeinated",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caicos",
+    "word": "caicos",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caio",
+    "word": "caio",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cairn",
+    "word": "cairn",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cairns",
+    "word": "cairns",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caisson",
+    "word": "caisson",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caitlynn",
+    "word": "caitlynn",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caius",
+    "word": "caius",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "caje",
+    "word": "caje",
+    "cefrLevel": "C2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "cajole",
+    "word": "cajole",
     "cefrLevel": "C2",
     "partOfSpeech": "",
     "phonetic": "",

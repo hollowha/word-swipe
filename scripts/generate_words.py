@@ -15,7 +15,11 @@ from pathlib import Path
 from collections import defaultdict
 import requests
 
+SCRIPT_DIR = Path(__file__).parent
+DATA_DIR = SCRIPT_DIR / 'data'
+FILTERS_DIR = DATA_DIR / 'filters'
 OUTPUT_DIR = Path(__file__).parent.parent / 'assets' / 'words'
+NOISE_TOKENS_PATH = FILTERS_DIR / 'noise_tokens.txt'
 
 TARGETS = {
     'A1': 1500,
@@ -58,6 +62,67 @@ def is_valid(w: str) -> bool:
         2 <= len(w) <= 30
         and bool(re.match(r'^[a-z][a-z\'\-]*[a-z]$', w))
     )
+
+
+def load_noise_tokens() -> set[str]:
+    if not NOISE_TOKENS_PATH.exists():
+        return set()
+    return {
+        normalize(line)
+        for line in NOISE_TOKENS_PATH.read_text(encoding='utf-8').splitlines()
+        if line.strip() and not line.strip().startswith('#')
+    }
+
+
+def is_elongated_interjection(word: str) -> bool:
+    collapsed = re.sub(r'(.)\1+', r'\1', word)
+    return len(word) >= 4 and collapsed in {
+        'ah',
+        'oh',
+        'uh',
+        'hm',
+        'huh',
+        'mm',
+        'agh',
+        'argh',
+        'ow',
+        'ha',
+    }
+
+
+def is_fragmented_spoken_form(word: str) -> bool:
+    if word.startswith('a-'):
+        return True
+    return bool(re.fullmatch(r'(?:[a-z]-){2,}[a-z]+', word))
+
+
+def is_truncated_contraction(word: str) -> bool:
+    return word in {
+        'aren',
+        'couldn',
+        'didn',
+        'doesn',
+        'hadn',
+        'hasn',
+        'haven',
+        'isn',
+        'shouldn',
+        'wasn',
+        'weren',
+        'wouldn',
+    }
+
+
+def is_noise_token(word: str, denylist: set[str]) -> bool:
+    if word in denylist:
+        return True
+    if is_truncated_contraction(word):
+        return True
+    if is_fragmented_spoken_form(word):
+        return True
+    if is_elongated_interjection(word):
+        return True
+    return False
 
 
 def frequency_to_cefr(rank: int) -> str:
@@ -113,9 +178,13 @@ def load_oxford_overrides() -> dict:
     return {}
 
 
-def build_word_set(freq: dict, oxford: dict) -> dict:
+def build_word_set(freq: dict, oxford: dict, denylist: set[str]) -> dict:
     """Merge sources (Oxford takes priority), cap at TARGETS."""
-    merged = {**freq, **oxford}  # Oxford overrides freq
+    merged = {
+        word: level
+        for word, level in {**freq, **oxford}.items()  # Oxford overrides freq
+        if not is_noise_token(word, denylist)
+    }
 
     by_level = defaultdict(list)
     for word, level in merged.items():
@@ -146,9 +215,16 @@ def make_entry(word: str, level: str) -> dict:
 def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+    denylist = load_noise_tokens()
+    print(f'Loaded {len(denylist)} explicit noise tokens.')
     freq = load_frequency_list()
     oxford = load_oxford_overrides()
-    word_set = build_word_set(freq, oxford)
+    if not freq and not oxford:
+        raise SystemExit(
+            'No source word data could be downloaded. '
+            'Aborting to avoid overwriting existing assets with empty files.'
+        )
+    word_set = build_word_set(freq, oxford, denylist)
 
     total = 0
     for level, words in word_set.items():
@@ -157,6 +233,11 @@ def main():
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
         print(f'  Wrote {path.name}: {len(words)} words')
         total += len(words)
+
+    if total == 0:
+        raise SystemExit(
+            'Generated zero words. Aborting to avoid keeping empty assets.'
+        )
 
     print(f'\nDone! Total words: {total}')
 

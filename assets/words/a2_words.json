@@ -580,16 +580,6 @@
     "definitionLoaded": false
   },
   {
-    "id": "ahh",
-    "word": "ahh",
-    "cefrLevel": "A2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
     "id": "aid",
     "word": "aid",
     "cefrLevel": "A2",
@@ -24992,6 +24982,16 @@
   {
     "id": "stable",
     "word": "stable",
+    "cefrLevel": "A2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "stairs",
+    "word": "stairs",
     "cefrLevel": "A2",
     "partOfSpeech": "",
     "phonetic": "",

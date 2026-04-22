@@ -1,45 +1,5 @@
 [
   {
-    "id": "a-and",
-    "word": "a-and",
-    "cefrLevel": "B2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-bomb",
-    "word": "a-bomb",
-    "cefrLevel": "B2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-ha",
-    "word": "a-ha",
-    "cefrLevel": "B2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "a-team",
-    "word": "a-team",
-    "cefrLevel": "B2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
     "id": "aa",
     "word": "aa",
     "cefrLevel": "B2",
@@ -60,58 +20,8 @@
     "definitionLoaded": false
   },
   {
-    "id": "aaaaah",
-    "word": "aaaaah",
-    "cefrLevel": "B2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaaah",
-    "word": "aaaah",
-    "cefrLevel": "B2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaargh",
-    "word": "aaargh",
-    "cefrLevel": "B2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aagh",
-    "word": "aagh",
-    "cefrLevel": "B2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
     "id": "aang",
     "word": "aang",
-    "cefrLevel": "B2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aargh",
-    "word": "aargh",
     "cefrLevel": "B2",
     "partOfSpeech": "",
     "phonetic": "",
@@ -2130,16 +2040,6 @@
     "definitionLoaded": false
   },
   {
-    "id": "ah-ah",
-    "word": "ah-ah",
-    "cefrLevel": "B2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
     "id": "ah-ha",
     "word": "ah-ha",
     "cefrLevel": "B2",
@@ -2152,16 +2052,6 @@
   {
     "id": "ahab",
     "word": "ahab",
-    "cefrLevel": "B2",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "ahhhh",
-    "word": "ahhhh",
     "cefrLevel": "B2",
     "partOfSpeech": "",
     "phonetic": "",
@@ -49992,6 +49882,116 @@
   {
     "id": "hawking",
     "word": "hawking",
+    "cefrLevel": "B2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "hawks",
+    "word": "hawks",
+    "cefrLevel": "B2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "hawthorne",
+    "word": "hawthorne",
+    "cefrLevel": "B2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "hayat",
+    "word": "hayat",
+    "cefrLevel": "B2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "haynes",
+    "word": "haynes",
+    "cefrLevel": "B2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "haystack",
+    "word": "haystack",
+    "cefrLevel": "B2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "hayward",
+    "word": "hayward",
+    "cefrLevel": "B2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "haywire",
+    "word": "haywire",
+    "cefrLevel": "B2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "hazardous",
+    "word": "hazardous",
+    "cefrLevel": "B2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "hazards",
+    "word": "hazards",
+    "cefrLevel": "B2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "haze",
+    "word": "haze",
+    "cefrLevel": "B2",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "hazmat",
+    "word": "hazmat",
     "cefrLevel": "B2",
     "partOfSpeech": "",
     "phonetic": "",

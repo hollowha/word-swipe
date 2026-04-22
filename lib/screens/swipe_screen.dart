@@ -1,15 +1,20 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../models/word.dart';
-import '../providers/word_providers.dart';
 import '../providers/swipe_providers.dart';
+import '../providers/word_providers.dart';
 import '../theme.dart';
-import '../widgets/cefr_badge.dart';
-import '../widgets/word_card_front.dart';
-import '../widgets/word_card_back.dart';
 import '../widgets/swipe_buttons.dart';
+import '../widgets/word_card_back.dart';
+import '../widgets/word_card_face.dart';
+import '../widgets/word_card_front.dart';
+
+enum _SwipeDirection { left, right }
+enum _SwipeInputSource { button, gesture }
 
 class SwipeScreen extends ConsumerStatefulWidget {
   const SwipeScreen({super.key});
@@ -19,25 +24,14 @@ class SwipeScreen extends ConsumerStatefulWidget {
 }
 
 class _SwipeScreenState extends ConsumerState<SwipeScreen> {
-  late CardSwiperController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = CardSwiperController();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final _cardAreaKey = GlobalKey<_CardAreaState>();
 
   @override
   Widget build(BuildContext context) {
     final deckAsync = ref.watch(wordDeckProvider);
     final swipeState = ref.watch(swipeProvider);
     final selectedLevel = ref.watch(selectedLevelProvider);
+    final studyMode = ref.watch(studyDeckModeProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.bg,
@@ -51,12 +45,18 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
               data: (deck) {
                 if (deck.isEmpty) {
                   return _EmptyView(
+                    studyMode: studyMode,
                     onReset: () {
+                      if (studyMode == StudyDeckMode.reviewLeftSwiped) {
+                        ref.read(studyDeckModeProvider.notifier).state =
+                            StudyDeckMode.normal;
+                      }
                       ref.read(swipeProvider.notifier).reset();
                       ref.invalidate(wordDeckProvider);
                     },
                   );
                 }
+
                 if (swipeState.isComplete ||
                     swipeState.currentIndex >= deck.length) {
                   return _CompletionView(
@@ -71,12 +71,15 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
 
                 return Column(
                   children: [
-                    _TopBar(onDashboard: () => context.push('/dashboard')),
+                    _TopBar(
+                      studyMode: studyMode,
+                      onDashboard: () => context.push('/dashboard'),
+                    ),
                     _LevelTabs(selected: selectedLevel),
                     Expanded(
                       child: _CardArea(
+                        key: _cardAreaKey,
                         deck: deck,
-                        controller: _controller,
                         currentIndex: swipeState.currentIndex,
                       ),
                     ),
@@ -87,9 +90,15 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
                     const SizedBox(height: 16),
                     SwipeButtons(
                       onLeft: () =>
-                          _controller.swipe(CardSwiperDirection.left),
+                          _cardAreaKey.currentState?.triggerSwipe(
+                            _SwipeDirection.left,
+                            inputSource: _SwipeInputSource.button,
+                          ),
                       onRight: () =>
-                          _controller.swipe(CardSwiperDirection.right),
+                          _cardAreaKey.currentState?.triggerSwipe(
+                            _SwipeDirection.right,
+                            inputSource: _SwipeInputSource.button,
+                          ),
                     ),
                     const SizedBox(height: 32),
                   ],
@@ -103,11 +112,14 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
   }
 }
 
-// ── Top bar ────────────────────────────────────────────────────────────────────
-
 class _TopBar extends StatelessWidget {
+  final StudyDeckMode studyMode;
   final VoidCallback onDashboard;
-  const _TopBar({required this.onDashboard});
+
+  const _TopBar({
+    required this.studyMode,
+    required this.onDashboard,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -115,14 +127,38 @@ class _TopBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 12, 16, 4),
       child: Row(
         children: [
-          const Text(
-            'WordSwipe',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.ink,
-              letterSpacing: -0.5,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'WordSwipe',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.ink,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              if (studyMode == StudyDeckMode.reviewLeftSwiped)
+                Container(
+                  margin: const EdgeInsets.only(top: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.learning.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Text(
+                    'Review: NEW words',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.learning,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const Spacer(),
           IconButton(
@@ -143,10 +179,9 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-// ── Level tabs ─────────────────────────────────────────────────────────────────
-
 class _LevelTabs extends ConsumerWidget {
   final String? selected;
+
   const _LevelTabs({required this.selected});
 
   @override
@@ -176,9 +211,7 @@ class _LevelTabs extends ConsumerWidget {
                 color: isSelected ? AppTheme.ink : AppTheme.surface,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isSelected
-                      ? AppTheme.ink
-                      : const Color(0xFFE5E5E3),
+                  color: isSelected ? AppTheme.ink : const Color(0xFFE5E5E3),
                   width: 1,
                 ),
               ),
@@ -186,8 +219,7 @@ class _LevelTabs extends ConsumerWidget {
                 level ?? 'All',
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight:
-                      isSelected ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   color: isSelected ? Colors.white : AppTheme.inkSubtle,
                   letterSpacing: isSelected ? 0.2 : 0,
                 ),
@@ -200,16 +232,13 @@ class _LevelTabs extends ConsumerWidget {
   }
 }
 
-// ── Card area ──────────────────────────────────────────────────────────────────
-
 class _CardArea extends ConsumerStatefulWidget {
   final List<Word> deck;
-  final CardSwiperController controller;
   final int currentIndex;
 
   const _CardArea({
+    super.key,
     required this.deck,
-    required this.controller,
     required this.currentIndex,
   });
 
@@ -217,198 +246,374 @@ class _CardArea extends ConsumerStatefulWidget {
   ConsumerState<_CardArea> createState() => _CardAreaState();
 }
 
-class _CardAreaState extends ConsumerState<_CardArea> {
-  /// Tracks horizontal drag progress (0.0 → 1.0) for the preview card animation.
-  /// ValueNotifier avoids rebuilding _CardArea on every drag frame.
-  final _drag = ValueNotifier<double>(0.0);
+class _CardAreaState extends ConsumerState<_CardArea>
+    with SingleTickerProviderStateMixin {
+  static const _cardPadding = EdgeInsets.symmetric(horizontal: 20, vertical: 12);
+  static const _swipeDecisionRatio = 0.24;
+  static const _velocityThreshold = 950.0;
 
-  /// Local top-card index so the preview word updates immediately on swipe
-  /// without waiting for the async Riverpod state to propagate.
+  late final AnimationController _motionController;
+  Animation<Offset>? _motion;
+  Offset _dragOffset = Offset.zero;
+  Size _cardSize = const Size(320, 480);
   int _topIndex = 0;
-
-  final Set<String> _prefetched = {};
+  _SwipeDirection? _pendingDirection;
+  _SwipeInputSource _pendingInputSource = _SwipeInputSource.gesture;
+  bool _isAnimating = false;
 
   @override
   void initState() {
     super.initState();
     _topIndex = widget.currentIndex;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _prefetch(0));
+    _motionController = AnimationController(vsync: this)
+      ..addListener(_handleMotionTick)
+      ..addStatusListener(_handleMotionStatus);
   }
 
   @override
-  void didUpdateWidget(_CardArea old) {
-    super.didUpdateWidget(old);
-    if (old.deck != widget.deck) {
-      _prefetched.clear();
-      _topIndex = 0;
-      _drag.value = 0.0;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _prefetch(0));
+  void didUpdateWidget(covariant _CardArea oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final deckChanged = oldWidget.deck != widget.deck;
+    final resetRequested =
+        oldWidget.currentIndex != widget.currentIndex && widget.currentIndex == 0;
+
+    if (deckChanged || resetRequested) {
+      _motionController.stop();
+      _pendingDirection = null;
+      _pendingInputSource = _SwipeInputSource.gesture;
+      _isAnimating = false;
+      _dragOffset = Offset.zero;
+      _topIndex = widget.currentIndex;
+      return;
+    }
+
+    if (!_isAnimating && widget.currentIndex != _topIndex) {
+      _topIndex = widget.currentIndex;
     }
   }
 
   @override
   void dispose() {
-    _drag.dispose();
+    _motionController
+      ..removeListener(_handleMotionTick)
+      ..removeStatusListener(_handleMotionStatus)
+      ..dispose();
     super.dispose();
   }
 
-  void _prefetch(int from) {
-    if (!mounted) return;
-    final end = (from + 5).clamp(0, widget.deck.length);
-    for (int i = from; i < end; i++) {
-      final id = widget.deck[i].id;
-      if (_prefetched.contains(id)) continue;
-      _prefetched.add(id);
-      ref.read(definitionProvider(id).future).ignore();
+  void triggerSwipe(
+    _SwipeDirection direction, {
+    required _SwipeInputSource inputSource,
+  }) {
+    if (_isAnimating || _topIndex >= widget.deck.length) return;
+    final width = _cardSize.width;
+    final x = direction == _SwipeDirection.left ? -width * 1.35 : width * 1.35;
+    _animateTo(
+      Offset(x, _dragOffset.dy * 0.35),
+      decision: direction,
+      inputSource: inputSource,
+      duration: const Duration(milliseconds: 220),
+    );
+  }
+
+  void _handleMotionTick() {
+    final animation = _motion;
+    if (animation == null) return;
+    setState(() {
+      _dragOffset = animation.value;
+    });
+  }
+
+  void _handleMotionStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed) return;
+
+    final decision = _pendingDirection;
+    if (decision == null) {
+      setState(() {
+        _isAnimating = false;
+        _dragOffset = Offset.zero;
+      });
+      return;
     }
+
+    final previousIndex = _topIndex;
+    final word = widget.deck[previousIndex];
+    final inputSource = _pendingInputSource;
+    ref.read(hapticsServiceProvider).vibrateLight();
+    if (decision == _SwipeDirection.right) {
+      ref.read(swipeProvider.notifier).swipeRight(
+            word,
+            inputSource: inputSource.name,
+          );
+    } else {
+      ref.read(swipeProvider.notifier).swipeLeft(
+            word,
+            inputSource: inputSource.name,
+          );
+    }
+    ref.read(cardFlippedProvider(previousIndex).notifier).state = false;
+
+    final nextIndex = previousIndex + 1;
+    final finishedDeck = nextIndex >= widget.deck.length;
+
+    setState(() {
+      _topIndex = nextIndex;
+      _dragOffset = Offset.zero;
+      _pendingDirection = null;
+      _pendingInputSource = _SwipeInputSource.gesture;
+      _isAnimating = false;
+    });
+
+    if (finishedDeck) {
+      ref.read(swipeProvider.notifier).markComplete();
+    }
+  }
+
+  void _animateTo(
+    Offset target, {
+    _SwipeDirection? decision,
+    _SwipeInputSource inputSource = _SwipeInputSource.gesture,
+    required Duration duration,
+  }) {
+    _pendingDirection = decision;
+    _pendingInputSource = inputSource;
+    _isAnimating = true;
+    _motionController.duration = duration;
+    _motion = Tween(begin: _dragOffset, end: target).animate(
+      CurvedAnimation(parent: _motionController, curve: Curves.easeOutCubic),
+    );
+    _motionController.forward(from: 0);
+  }
+
+  void _handlePanUpdate(DragUpdateDetails details) {
+    if (_isAnimating) return;
+    setState(() {
+      _dragOffset = Offset(
+        _dragOffset.dx + details.delta.dx,
+        (_dragOffset.dy + details.delta.dy * 0.35)
+            .clamp(-56.0, 56.0)
+            .toDouble(),
+      );
+    });
+  }
+
+  void _handlePanEnd(DragEndDetails details) {
+    if (_isAnimating) return;
+
+    final width = math.max(_cardSize.width, 1);
+    final velocityX = details.velocity.pixelsPerSecond.dx;
+    final threshold = width * _swipeDecisionRatio;
+
+    if (_dragOffset.dx.abs() > threshold || velocityX.abs() > _velocityThreshold) {
+      final direction =
+          (_dragOffset.dx + velocityX * 0.12) >= 0 ? _SwipeDirection.right : _SwipeDirection.left;
+      triggerSwipe(direction, inputSource: _SwipeInputSource.gesture);
+      return;
+    }
+
+    _animateTo(
+      Offset.zero,
+      duration: const Duration(milliseconds: 170),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final deck = widget.deck;
-    final previewIdx = _topIndex + 1;
-    final hasPreview = previewIdx < deck.length;
+    final activeWord = _wordAt(_topIndex);
+    final nextWord = _wordAt(_topIndex + 1);
+    final queuedWord = _wordAt(_topIndex + 2);
 
-    return Stack(
-      children: [
-        // ── Preview card: sits behind the swiper, scales up as the user drags ──
-        if (hasPreview)
-          Positioned.fill(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: ValueListenableBuilder<double>(
-                valueListenable: _drag,
-                builder: (_, raw, child) {
-                  final eased =
-                      Curves.easeOut.transform(raw.clamp(0.0, 1.0));
-                  return Transform.translate(
-                    offset: Offset(0, 18.0 * (1.0 - eased)),
-                    child: Transform.scale(
-                      scale: 0.93 + eased * 0.07,
-                      child: child!,
+    if (activeWord == null) {
+      return const SizedBox.shrink();
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _cardSize = Size(
+          constraints.maxWidth - _cardPadding.horizontal,
+          constraints.maxHeight - _cardPadding.vertical,
+        );
+
+        final width = math.max(_cardSize.width, 1);
+        final dragProgress = (_dragOffset.dx.abs() / (width * 0.38)).clamp(0.0, 1.0);
+        final tilt = (_dragOffset.dx / width) * 0.085;
+        final isRight = _dragOffset.dx >= 0;
+
+        return Stack(
+          children: [
+            if (queuedWord != null)
+              Positioned.fill(
+                child: Padding(
+                  padding: _cardPadding,
+                  child: IgnorePointer(
+                    child: _BackgroundCardLayer(
+                      key: ValueKey('queued_${queuedWord.id}'),
+                      word: queuedWord,
+                      scale: 0.89 + dragProgress * 0.035,
+                      translateY: 30 - dragProgress * 8,
+                      opacity: 0.66 + dragProgress * 0.1,
                     ),
-                  );
-                },
-                child: _PreviewCard(word: deck[previewIdx]),
-              ),
-            ),
-          ),
-
-        // ── Active swiper: single card, owns the swipe physics ──
-        CardSwiper(
-          controller: widget.controller,
-          cardsCount: deck.length,
-          numberOfCardsDisplayed: 1,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          isLoop: false,
-          allowedSwipeDirection:
-              const AllowedSwipeDirection.only(left: true, right: true),
-          cardBuilder: (context, index, percentX, percentY) {
-            // Drive the preview card animation each frame
-            _drag.value = percentX.abs().clamp(0.0, 1.0).toDouble();
-
-            final word = deck[index];
-            final isFlipped = ref.watch(cardFlippedProvider(index));
-            final absX = percentX.abs();
-            final isRight = percentX > 0;
-
-            return GestureDetector(
-              onTap: () {
-                ref.read(cardFlippedProvider(index).notifier).state =
-                    !isFlipped;
-              },
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // Card face — flip animation (front ↔ back)
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 280),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeIn,
-                    transitionBuilder: (child, anim) => FadeTransition(
-                      opacity: anim,
-                      child: ScaleTransition(
-                        scale: Tween(begin: 0.94, end: 1.0).animate(
-                          CurvedAnimation(
-                              parent: anim, curve: Curves.easeOutCubic),
-                        ),
-                        child: child,
-                      ),
-                    ),
-                    child: isFlipped
-                        ? WordCardBack(
-                            key: ValueKey('back_$index'), word: word)
-                        : WordCardFront(
-                            key: ValueKey('front_$index'), word: word),
                   ),
-                  // Tinder KNOW / NEW overlay
-                  if (absX > 0.05)
-                    Positioned(
-                      top: 28,
-                      left: isRight ? 28 : null,
-                      right: isRight ? null : 28,
-                      child: Opacity(
-                        opacity: (absX * 2.5).clamp(0.0, 1.0),
-                        child: _SwipeOverlayLabel(
-                          label: isRight ? 'KNOW' : 'NEW',
-                          color:
+                ),
+              ),
+            if (nextWord != null)
+              Positioned.fill(
+                child: Padding(
+                  padding: _cardPadding,
+                  child: IgnorePointer(
+                    child: _BackgroundCardLayer(
+                      key: ValueKey('next_${nextWord.id}'),
+                      word: nextWord,
+                      scale: 0.94 + dragProgress * 0.05,
+                      translateY: 18 - dragProgress * 12,
+                      opacity: 0.88 + dragProgress * 0.12,
+                    ),
+                  ),
+                ),
+              ),
+            Positioned.fill(
+              child: Padding(
+                padding: _cardPadding,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onPanUpdate: _handlePanUpdate,
+                  onPanEnd: _handlePanEnd,
+                  child: Transform.translate(
+                    offset: _dragOffset,
+                    child: Transform.rotate(
+                      angle: tilt,
+                      alignment: Alignment.bottomCenter,
+                      child: RepaintBoundary(
+                        child: _ActiveWordCard(
+                          key: ValueKey('active_${activeWord.id}'),
+                          word: activeWord,
+                          index: _topIndex,
+                          overlayOpacity: dragProgress > 0.05 ? dragProgress : 0,
+                          overlayLabel: isRight ? 'KNOW' : 'NEW',
+                          overlayColor:
                               isRight ? AppTheme.know : AppTheme.learning,
                         ),
                       ),
                     ),
-                ],
+                  ),
+                ),
               ),
-            );
-          },
-          onSwipe: (prevIndex, _, direction) {
-            final word = deck[prevIndex];
-            if (direction == CardSwiperDirection.right) {
-              ref.read(swipeProvider.notifier).swipeRight(word);
-            } else if (direction == CardSwiperDirection.left) {
-              ref.read(swipeProvider.notifier).swipeLeft(word);
-            }
-            ref.read(cardFlippedProvider(prevIndex).notifier).state = false;
-            // Advance preview to the new next card
-            setState(() => _topIndex = prevIndex + 1);
-            _drag.value = 0.0;
-            _prefetch(prevIndex + 1);
-            return true;
-          },
-          onEnd: () => ref.read(swipeProvider.notifier).markComplete(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Word? _wordAt(int index) {
+    if (index < 0 || index >= widget.deck.length) return null;
+    return widget.deck[index];
+  }
+}
+
+class _BackgroundCardLayer extends StatelessWidget {
+  final Word word;
+  final double scale;
+  final double translateY;
+  final double opacity;
+
+  const _BackgroundCardLayer({
+    super.key,
+    required this.word,
+    required this.scale,
+    required this.translateY,
+    required this.opacity,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: opacity.clamp(0.0, 1.0),
+      child: Transform.translate(
+        offset: Offset(0, translateY),
+        child: Transform.scale(
+          scale: scale,
+          alignment: Alignment.topCenter,
+          child: RepaintBoundary(
+            child: _PreviewCard(word: word),
+          ),
         ),
-      ],
+      ),
     );
   }
 }
 
-// ── Preview card (non-interactive, sits behind the active card) ────────────────
+class _ActiveWordCard extends ConsumerWidget {
+  final Word word;
+  final int index;
+  final double overlayOpacity;
+  final String overlayLabel;
+  final Color overlayColor;
+
+  const _ActiveWordCard({
+    super.key,
+    required this.word,
+    required this.index,
+    required this.overlayOpacity,
+    required this.overlayLabel,
+    required this.overlayColor,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFlipped = ref.watch(cardFlippedProvider(index));
+
+    return GestureDetector(
+      onTap: () {
+        ref.read(cardFlippedProvider(index).notifier).state = !isFlipped;
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 260),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(
+                scale: Tween(begin: 0.965, end: 1.0).animate(
+                  CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+                ),
+                child: child,
+              ),
+            ),
+            child: isFlipped
+                ? WordCardBack(key: ValueKey('back_${word.id}'), word: word)
+                : WordCardFront(key: ValueKey('front_${word.id}'), word: word),
+          ),
+          if (overlayOpacity > 0)
+            Positioned(
+              top: 28,
+              left: overlayLabel == 'KNOW' ? 28 : null,
+              right: overlayLabel == 'NEW' ? 28 : null,
+              child: Opacity(
+                opacity: overlayOpacity.clamp(0.0, 1.0),
+                child: _SwipeOverlayLabel(
+                  label: overlayLabel,
+                  color: overlayColor,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 class _PreviewCard extends StatelessWidget {
   final Word word;
+
   const _PreviewCard({required this.word});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: AppTheme.cardDecoration,
-      padding: const EdgeInsets.all(28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: CefrBadge(level: word.cefrLevel),
-          ),
-          const Spacer(flex: 3),
-          Text(word.word, style: AppTheme.wordDisplay),
-          if (word.phonetic.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(word.phonetic, style: AppTheme.phoneticStyle),
-          ],
-          const Spacer(flex: 4),
-        ],
-      ),
-    );
+    return WordCardFace(word: word);
   }
 }
 
@@ -439,11 +644,10 @@ class _SwipeOverlayLabel extends StatelessWidget {
   }
 }
 
-// ── Progress row ───────────────────────────────────────────────────────────────
-
 class _ProgressRow extends StatelessWidget {
   final int current;
   final int total;
+
   const _ProgressRow({required this.current, required this.total});
 
   @override
@@ -476,8 +680,6 @@ class _ProgressRow extends StatelessWidget {
     );
   }
 }
-
-// ── Empty states ───────────────────────────────────────────────────────────────
 
 class _SeedingView extends StatelessWidget {
   const _SeedingView();
@@ -517,8 +719,13 @@ class _SeedingView extends StatelessWidget {
 }
 
 class _EmptyView extends StatelessWidget {
+  final StudyDeckMode studyMode;
   final VoidCallback onReset;
-  const _EmptyView({required this.onReset});
+
+  const _EmptyView({
+    required this.studyMode,
+    required this.onReset,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -534,11 +741,13 @@ class _EmptyView extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppTheme.surface,
                 shape: BoxShape.circle,
-                border:
-                    Border.all(color: const Color(0xFFE5E5E3), width: 1.5),
+                border: Border.all(color: const Color(0xFFE5E5E3), width: 1.5),
               ),
-              child: const Icon(Icons.layers_outlined,
-                  size: 32, color: AppTheme.inkMuted),
+              child: const Icon(
+                Icons.layers_outlined,
+                size: 32,
+                color: AppTheme.inkMuted,
+              ),
             ),
             const SizedBox(height: 20),
             const Text(
@@ -550,9 +759,11 @@ class _EmptyView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Try selecting a different level',
-              style: TextStyle(fontSize: 14, color: AppTheme.inkSubtle),
+            Text(
+              studyMode == StudyDeckMode.reviewLeftSwiped
+                  ? 'No review words match this filter yet'
+                  : 'Try selecting a different level',
+              style: const TextStyle(fontSize: 14, color: AppTheme.inkSubtle),
             ),
             const SizedBox(height: 28),
             _TextButton(label: 'Go back', onTap: onReset),
@@ -624,11 +835,10 @@ class _CompletionView extends StatelessWidget {
   }
 }
 
-// ── Shared button widgets ──────────────────────────────────────────────────────
-
 class _FilledButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
+
   const _FilledButton({required this.label, required this.onTap});
 
   @override
@@ -660,6 +870,7 @@ class _FilledButton extends StatelessWidget {
 class _TextButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
+
   const _TextButton({required this.label, required this.onTap});
 
   @override

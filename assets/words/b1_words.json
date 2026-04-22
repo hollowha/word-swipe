@@ -1,25 +1,5 @@
 [
   {
-    "id": "a-a",
-    "word": "a-a",
-    "cefrLevel": "B1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "aaah",
-    "word": "aaah",
-    "cefrLevel": "B1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
     "id": "abbey",
     "word": "abbey",
     "cefrLevel": "B1",
@@ -1112,16 +1092,6 @@
   {
     "id": "aha",
     "word": "aha",
-    "cefrLevel": "B1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "ahhh",
-    "word": "ahhh",
     "cefrLevel": "B1",
     "partOfSpeech": "",
     "phonetic": "",
@@ -2742,16 +2712,6 @@
   {
     "id": "argentina",
     "word": "argentina",
-    "cefrLevel": "B1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "argh",
-    "word": "argh",
     "cefrLevel": "B1",
     "partOfSpeech": "",
     "phonetic": "",
@@ -28560,16 +28520,6 @@
     "definitionLoaded": false
   },
   {
-    "id": "hmmm",
-    "word": "hmmm",
-    "cefrLevel": "B1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
     "id": "hobby",
     "word": "hobby",
     "cefrLevel": "B1",
@@ -29622,16 +29572,6 @@
   {
     "id": "i--i",
     "word": "i--i",
-    "cefrLevel": "B1",
-    "partOfSpeech": "",
-    "phonetic": "",
-    "definition": "",
-    "example": "",
-    "definitionLoaded": false
-  },
-  {
-    "id": "i-i-i",
-    "word": "i-i-i",
     "cefrLevel": "B1",
     "partOfSpeech": "",
     "phonetic": "",
@@ -39992,6 +39932,66 @@
   {
     "id": "movin",
     "word": "movin",
+    "cefrLevel": "B1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "mozart",
+    "word": "mozart",
+    "cefrLevel": "B1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "mp",
+    "word": "mp",
+    "cefrLevel": "B1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "mri",
+    "word": "mri",
+    "cefrLevel": "B1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "mu",
+    "word": "mu",
+    "cefrLevel": "B1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "muddy",
+    "word": "muddy",
+    "cefrLevel": "B1",
+    "partOfSpeech": "",
+    "phonetic": "",
+    "definition": "",
+    "example": "",
+    "definitionLoaded": false
+  },
+  {
+    "id": "muffin",
+    "word": "muffin",
     "cefrLevel": "B1",
     "partOfSpeech": "",
     "phonetic": "",
