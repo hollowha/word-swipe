@@ -1,4 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import '../models/smart_deck.dart';
+import '../models/study_constants.dart';
 import '../models/word.dart';
 import '../models/swipe_event.dart';
 import '../models/swipe_record.dart';
@@ -130,6 +132,149 @@ class StorageService {
     return getReviewWordSummaries(level: level).map((entry) => entry.word).toList();
   }
 
+  SmartDeck getSmartDeck({DateTime? now, int limit = smartDeckSize}) {
+    final today = now ?? DateTime.now();
+    final targetLevel = getTargetLevel(now: today);
+    final targetIndex = cefrLevels.indexOf(targetLevel);
+    final allStudyWords = getStudyWordsByLevel(null);
+
+    final due = <Word>[];
+    final currentNew = <Word>[];
+    final easier = <Word>[];
+    final challenge = <Word>[];
+
+    for (final word in allStudyWords) {
+      final record = swipes.get(word.id);
+      final levelIndex = cefrLevels.indexOf(word.cefrLevel);
+      if (record != null && record.isLearning && !record.isDue(today)) {
+        continue;
+      }
+      if (record != null && record.isDue(today)) {
+        due.add(word);
+        continue;
+      }
+      if (record?.isSeen == true) continue;
+
+      if (levelIndex == targetIndex) {
+        currentNew.add(word);
+      } else if (levelIndex >= 0 && levelIndex < targetIndex) {
+        easier.add(word);
+      } else if (levelIndex == targetIndex + 1) {
+        challenge.add(word);
+      }
+    }
+
+    due.sort(_byOldestDue);
+    currentNew.sort(_byWordId);
+    easier.sort(_byWordId);
+    challenge.sort(_byWordId);
+
+    final hasDue = due.isNotEmpty;
+    final dueTarget = hasDue ? (limit * 0.60).round() : 0;
+    final currentTarget = hasDue ? (limit * 0.30).round() : (limit * 0.70).round();
+    final easierTarget = hasDue ? 0 : (limit * 0.20).round();
+    final challengeTarget = limit - dueTarget - currentTarget - easierTarget;
+
+    final selected = <Word>[];
+    final selectedIds = <String>{};
+    void addSome(List<Word> source, int count) {
+      for (final word in source) {
+        if (selected.length >= limit || count <= 0) break;
+        if (selectedIds.add(word.id)) {
+          selected.add(word);
+          count--;
+        }
+      }
+    }
+
+    addSome(due, dueTarget);
+    addSome(currentNew, currentTarget);
+    addSome(easier.reversed.toList(), easierTarget);
+    addSome(challenge, challengeTarget);
+    addSome(due, limit - selected.length);
+    addSome(currentNew, limit - selected.length);
+    addSome(easier.reversed.toList(), limit - selected.length);
+    addSome(challenge, limit - selected.length);
+
+    final smartStats = getSmartStats(now: today);
+    return SmartDeck(
+      words: selected,
+      metrics: SmartDeckMetrics(
+        targetLevel: targetLevel,
+        dueReviewCount: smartStats.dueReviewCount,
+        learningCount: smartStats.learningCount,
+        knowCount: smartStats.knowCount,
+        newCount: smartStats.newCount,
+        totalCount: selected.length,
+      ),
+    );
+  }
+
+  SmartDeckMetrics getSmartStats({DateTime? now}) {
+    final today = now ?? DateTime.now();
+    var dueCount = 0;
+    var learningCount = 0;
+    var knowCount = 0;
+    var newCount = 0;
+
+    for (final word in words.values) {
+      final record = swipes.get(word.id);
+      if (record == null || !record.isSeen) {
+        newCount++;
+        continue;
+      }
+      if (record.isFamiliar) knowCount++;
+      if (record.isLearning) {
+        learningCount++;
+        if (record.isDue(today)) dueCount++;
+      }
+    }
+
+    return SmartDeckMetrics(
+      targetLevel: getTargetLevel(now: today),
+      dueReviewCount: dueCount,
+      learningCount: learningCount,
+      knowCount: knowCount,
+      newCount: newCount,
+      totalCount: words.length,
+    );
+  }
+
+  String getTargetLevel({DateTime? now}) {
+    final recent = swipeEvents.values.toList()
+      ..sort((a, b) => b.swipedAt.compareTo(a.swipedAt));
+    final lastThirty = recent.take(30).toList();
+    final recentLeftRatio = lastThirty.isEmpty
+        ? 0.0
+        : lastThirty.where((event) => event.direction == swipeDirectionNew).length /
+            lastThirty.length;
+
+    var levelIndex = 0;
+    for (var i = 0; i < cefrLevels.length; i++) {
+      final level = cefrLevels[i];
+      final levelWords = words.values.where((word) => word.cefrLevel == level);
+      var seen = 0;
+      var right = 0;
+      var totalSwipes = 0;
+      for (final word in levelWords) {
+        final record = swipes.get(word.id);
+        if (record == null || !record.isSeen) continue;
+        seen++;
+        right += record.rightCount;
+        totalSwipes += record.totalSwipes;
+      }
+      final ratio = totalSwipes == 0 ? 0.0 : right / totalSwipes;
+      if (seen >= 30 && ratio >= 0.75 && i < cefrLevels.length - 1) {
+        levelIndex = i + 1;
+      }
+    }
+
+    if (recentLeftRatio >= 0.45 && levelIndex > 0) {
+      levelIndex--;
+    }
+    return cefrLevels[levelIndex];
+  }
+
   WordInsight getInsight(String wordId) {
     return insights.get(wordId) ?? WordInsight.empty(wordId);
   }
@@ -142,22 +287,32 @@ class StorageService {
     String wordId,
     String direction, {
     required String inputSource,
+    DateTime? swipedAt,
   }) async {
     final record = getOrCreateRecord(wordId);
-    final swipedAt = DateTime.now();
-    if (direction == 'right') {
+    final eventTime = swipedAt ?? DateTime.now();
+    if (direction == swipeDirectionKnow) {
       record.rightCount++;
+      record.consecutiveKnowCount++;
+      if (record.isLearning || record.dueAt != null) {
+        record.srsStep = (record.srsStep + 1).clamp(1, srsIntervals.length);
+        record.dueAt = eventTime.add(srsIntervals[record.srsStep - 1]);
+      }
     } else {
       record.leftCount++;
+      record.consecutiveKnowCount = 0;
+      record.srsStep = 0;
+      record.newMarkedAt ??= eventTime;
+      record.dueAt = eventTime.add(srsIntervals.first);
     }
     record.lastDirection = direction;
-    record.lastSwipedAt = swipedAt;
+    record.lastSwipedAt = eventTime;
 
     final event = SwipeEvent(
-      id: '${swipedAt.microsecondsSinceEpoch}_${wordId}_$direction',
+      id: '${eventTime.microsecondsSinceEpoch}_${wordId}_$direction',
       wordId: wordId,
       direction: direction,
-      swipedAt: swipedAt,
+      swipedAt: eventTime,
       inputSource: inputSource,
     );
 
@@ -286,4 +441,12 @@ class StorageService {
     }
     return result;
   }
+
+  int _byOldestDue(Word a, Word b) {
+    final aDue = swipes.get(a.id)?.dueAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+    final bDue = swipes.get(b.id)?.dueAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+    return aDue.compareTo(bDue);
+  }
+
+  int _byWordId(Word a, Word b) => a.id.compareTo(b.id);
 }

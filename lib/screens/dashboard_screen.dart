@@ -4,9 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../providers/swipe_providers.dart';
 import '../providers/word_providers.dart';
+import '../models/smart_deck.dart';
+import '../models/study_constants.dart';
 import '../services/storage_service.dart';
 import '../theme.dart';
 import '../widgets/cefr_badge.dart';
+import '../widgets/smart_path_card.dart';
 
 enum _DashboardTab { progress, history, review }
 enum _HistoryViewMode { events, recentWords }
@@ -30,6 +33,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final historyEvents = storage.getSwipeEventEntries(level: selectedLevel);
     final recentWords = storage.getRecentWordSummaries(level: selectedLevel);
     final reviewWords = storage.getReviewWordSummaries(level: selectedLevel);
+    final smartStats = storage.getSmartStats();
 
     int totalFamiliar = 0;
     int totalSeen = 0;
@@ -112,6 +116,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   child: switch (_selectedTab) {
                     _DashboardTab.progress => _ProgressTab(
                         stats: stats,
+                        smartStats: smartStats,
                         totalFamiliar: totalFamiliar,
                         totalSeen: totalSeen,
                         totalWords: totalWords,
@@ -250,6 +255,7 @@ class _LevelFilterBar extends StatelessWidget {
 
 class _ProgressTab extends StatelessWidget {
   final Map<String, Map<String, int>> stats;
+  final SmartDeckMetrics smartStats;
   final int totalFamiliar;
   final int totalSeen;
   final int totalWords;
@@ -257,6 +263,7 @@ class _ProgressTab extends StatelessWidget {
 
   const _ProgressTab({
     required this.stats,
+    required this.smartStats,
     required this.totalFamiliar,
     required this.totalSeen,
     required this.totalWords,
@@ -268,6 +275,8 @@ class _ProgressTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       children: [
+        SmartPathCard(stats: smartStats),
+        const SizedBox(height: 12),
         _HeroCard(
           familiar: totalFamiliar,
           seen: totalSeen,
@@ -286,7 +295,7 @@ class _ProgressTab extends StatelessWidget {
             ),
           ),
         ),
-        ...['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((level) {
+        ...cefrLevels.map((level) {
           final s = stats[level] ?? {'total': 0, 'seen': 0, 'familiar': 0};
           return Padding(
             padding: const EdgeInsets.only(bottom: 10),
@@ -763,7 +772,7 @@ class _RecentWordCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Right ${summary.record.rightCount} · Left ${summary.record.leftCount}',
+                  'Right ${summary.record.rightCount} / Left ${summary.record.leftCount}',
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppTheme.inkMuted,
@@ -889,7 +898,7 @@ class _ReviewWordCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Left ${entry.record.leftCount} · Right ${entry.record.rightCount}',
+            'Left ${entry.record.leftCount} / Right ${entry.record.rightCount}',
             style: const TextStyle(
               fontSize: 12,
               color: AppTheme.inkMuted,

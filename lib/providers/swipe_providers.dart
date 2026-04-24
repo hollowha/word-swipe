@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/study_constants.dart';
 import '../models/word.dart';
 import '../models/swipe_record.dart';
 import '../models/word_insight.dart';
@@ -12,12 +13,30 @@ import 'word_providers.dart';
 class SwipeState {
   final int currentIndex;
   final bool isComplete;
+  final int knowCount;
+  final int newCount;
+  final int dueReviewCompleted;
 
-  const SwipeState({this.currentIndex = 0, this.isComplete = false});
+  const SwipeState({
+    this.currentIndex = 0,
+    this.isComplete = false,
+    this.knowCount = 0,
+    this.newCount = 0,
+    this.dueReviewCompleted = 0,
+  });
 
-  SwipeState copyWith({int? currentIndex, bool? isComplete}) => SwipeState(
+  SwipeState copyWith({
+    int? currentIndex,
+    bool? isComplete,
+    int? knowCount,
+    int? newCount,
+    int? dueReviewCompleted,
+  }) => SwipeState(
         currentIndex: currentIndex ?? this.currentIndex,
         isComplete: isComplete ?? this.isComplete,
+        knowCount: knowCount ?? this.knowCount,
+        newCount: newCount ?? this.newCount,
+        dueReviewCompleted: dueReviewCompleted ?? this.dueReviewCompleted,
       );
 }
 
@@ -30,11 +49,17 @@ class SwipeNotifier extends StateNotifier<SwipeState> {
     Word word, {
     required String inputSource,
   }) async {
-    // Update index immediately so the UI responds without waiting for Hive
-    state = state.copyWith(currentIndex: state.currentIndex + 1);
+    final wasDue = _storage.getOrCreateRecord(word.id).isDue(DateTime.now());
+    // Update immediately so the UI responds without waiting for Hive.
+    state = state.copyWith(
+      currentIndex: state.currentIndex + 1,
+      knowCount: state.knowCount + 1,
+      dueReviewCompleted:
+          state.dueReviewCompleted + (wasDue ? 1 : 0),
+    );
     _storage.recordSwipe(
       word.id,
-      'right',
+      swipeDirectionKnow,
       inputSource: inputSource,
     ); // fire-and-forget
   }
@@ -43,10 +68,13 @@ class SwipeNotifier extends StateNotifier<SwipeState> {
     Word word, {
     required String inputSource,
   }) async {
-    state = state.copyWith(currentIndex: state.currentIndex + 1);
+    state = state.copyWith(
+      currentIndex: state.currentIndex + 1,
+      newCount: state.newCount + 1,
+    );
     _storage.recordSwipe(
       word.id,
-      'left',
+      swipeDirectionNew,
       inputSource: inputSource,
     );
   }

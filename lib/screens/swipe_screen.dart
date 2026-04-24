@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/word.dart';
+import '../models/study_constants.dart';
 import '../providers/swipe_providers.dart';
 import '../providers/word_providers.dart';
 import '../theme.dart';
 import '../widgets/swipe_buttons.dart';
+import '../widgets/today_status_panel.dart';
 import '../widgets/word_card_back.dart';
 import '../widgets/word_card_face.dart';
 import '../widgets/word_card_front.dart';
@@ -30,8 +32,8 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
   Widget build(BuildContext context) {
     final deckAsync = ref.watch(wordDeckProvider);
     final swipeState = ref.watch(swipeProvider);
-    final selectedLevel = ref.watch(selectedLevelProvider);
     final studyMode = ref.watch(studyDeckModeProvider);
+    final smartDeckAsync = ref.watch(smartDeckProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.bg,
@@ -49,9 +51,10 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
                     onReset: () {
                       if (studyMode == StudyDeckMode.reviewLeftSwiped) {
                         ref.read(studyDeckModeProvider.notifier).state =
-                            StudyDeckMode.normal;
+                            StudyDeckMode.smart;
                       }
                       ref.read(swipeProvider.notifier).reset();
+                      ref.invalidate(smartDeckProvider);
                       ref.invalidate(wordDeckProvider);
                     },
                   );
@@ -61,8 +64,12 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
                     swipeState.currentIndex >= deck.length) {
                   return _CompletionView(
                     count: deck.length,
+                    knowCount: swipeState.knowCount,
+                    newCount: swipeState.newCount,
+                    dueReviewCompleted: swipeState.dueReviewCompleted,
                     onReset: () {
                       ref.read(swipeProvider.notifier).reset();
+                      ref.invalidate(smartDeckProvider);
                       ref.invalidate(wordDeckProvider);
                     },
                     onDashboard: () => context.push('/dashboard'),
@@ -75,7 +82,10 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
                       studyMode: studyMode,
                       onDashboard: () => context.push('/dashboard'),
                     ),
-                    _LevelTabs(selected: selectedLevel),
+                    if (studyMode == StudyDeckMode.smart)
+                      TodayStatusPanel(deckAsync: smartDeckAsync)
+                    else
+                      _LevelTabs(selected: ref.watch(selectedLevelProvider)),
                     Expanded(
                       child: _CardArea(
                         key: _cardAreaKey,
@@ -158,6 +168,25 @@ class _TopBar extends StatelessWidget {
                     ),
                   ),
                 ),
+              if (studyMode == StudyDeckMode.smart)
+                Container(
+                  margin: const EdgeInsets.only(top: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.know.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Text(
+                    'Today smart deck',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.know,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
             ],
           ),
           const Spacer(),
@@ -186,7 +215,7 @@ class _LevelTabs extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final levels = [null, 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+    final levels = [null, ...cefrLevels];
     return SizedBox(
       height: 44,
       child: ListView.separated(
@@ -201,6 +230,7 @@ class _LevelTabs extends ConsumerWidget {
             onTap: () {
               ref.read(selectedLevelProvider.notifier).state = level;
               ref.read(swipeProvider.notifier).reset();
+              ref.invalidate(smartDeckProvider);
               ref.invalidate(wordDeckProvider);
             },
             child: AnimatedContainer(
@@ -776,11 +806,17 @@ class _EmptyView extends StatelessWidget {
 
 class _CompletionView extends StatelessWidget {
   final int count;
+  final int knowCount;
+  final int newCount;
+  final int dueReviewCompleted;
   final VoidCallback onReset;
   final VoidCallback onDashboard;
 
   const _CompletionView({
     required this.count,
+    required this.knowCount,
+    required this.newCount,
+    required this.dueReviewCompleted,
     required this.onReset,
     required this.onDashboard,
   });
@@ -818,16 +854,77 @@ class _CompletionView extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'You reviewed $count words',
+              'You studied $count words today',
               style: const TextStyle(
                 fontSize: 15,
                 color: AppTheme.inkSubtle,
               ),
             ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                _SessionPill(
+                  label: 'KNOW',
+                  value: knowCount,
+                  color: AppTheme.know,
+                ),
+                const SizedBox(width: 8),
+                _SessionPill(
+                  label: 'NEW',
+                  value: newCount,
+                  color: AppTheme.learning,
+                ),
+                const SizedBox(width: 8),
+                _SessionPill(
+                  label: 'DUE DONE',
+                  value: dueReviewCompleted,
+                  color: AppTheme.ink,
+                ),
+              ],
+            ),
             const SizedBox(height: 36),
-            _FilledButton(label: 'Review again', onTap: onReset),
+            _FilledButton(label: 'Start next smart deck', onTap: onReset),
             const SizedBox(height: 12),
             _TextButton(label: 'View progress', onTap: onDashboard),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SessionPill extends StatelessWidget {
+  final String label;
+  final int value;
+  final Color color;
+
+  const _SessionPill({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text(
+              '$value',
+              style: TextStyle(
+                color: color,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(label, style: AppTheme.labelSmall),
           ],
         ),
       ),

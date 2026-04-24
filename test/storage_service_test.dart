@@ -207,4 +207,93 @@ void main() {
     expect(reviewWordIds, ['alpha']);
     expect(storage.getReviewWordsByLevel('B1'), isEmpty);
   });
+
+  test('left swipe schedules a new word for spaced repetition', () async {
+    final now = DateTime(2026, 4, 25, 9);
+    await storage.seedWords([
+      Word(id: 'alpha', word: 'alpha', cefrLevel: 'A1'),
+    ]);
+
+    await storage.recordSwipe(
+      'alpha',
+      'left',
+      inputSource: 'gesture',
+      swipedAt: now,
+    );
+
+    final record = storage.getOrCreateRecord('alpha');
+    expect(record.srsStep, 0);
+    expect(record.newMarkedAt, now);
+    expect(record.dueAt, now.add(const Duration(days: 1)));
+  });
+
+  test('smart deck prioritizes due reviews and skips learning words not due', () async {
+    final now = DateTime(2026, 4, 25, 9);
+    await storage.seedWords([
+      Word(id: 'due', word: 'due', cefrLevel: 'A1'),
+      Word(id: 'later', word: 'later', cefrLevel: 'A1'),
+      Word(id: 'fresh', word: 'fresh', cefrLevel: 'A1'),
+    ]);
+
+    await storage.seedInsights(
+      const [
+        WordInsight(wordId: 'due', definition: 'ready', hasInsight: true),
+        WordInsight(wordId: 'later', definition: 'wait', hasInsight: true),
+        WordInsight(wordId: 'fresh', definition: 'new', hasInsight: true),
+      ],
+      version: 'smart-test',
+    );
+
+    await storage.recordSwipe(
+      'due',
+      'left',
+      inputSource: 'gesture',
+      swipedAt: now.subtract(const Duration(days: 2)),
+    );
+    await storage.recordSwipe(
+      'later',
+      'left',
+      inputSource: 'gesture',
+      swipedAt: now,
+    );
+
+    final smartDeck = storage.getSmartDeck(now: now, limit: 3);
+    expect(smartDeck.words.first.id, 'due');
+    expect(smartDeck.words.map((word) => word.id), isNot(contains('later')));
+    expect(smartDeck.metrics.dueReviewCount, 1);
+    expect(smartDeck.metrics.learningCount, 2);
+  });
+
+  test('smart deck moves to the next level after enough strong A1 swipes', () async {
+    final now = DateTime(2026, 4, 25, 9);
+    final a1Words = List.generate(
+      31,
+      (index) => Word(id: 'a1_$index', word: 'a1_$index', cefrLevel: 'A1'),
+    );
+    final a2Words = List.generate(
+      3,
+      (index) => Word(id: 'a2_$index', word: 'a2_$index', cefrLevel: 'A2'),
+    );
+    await storage.seedWords([...a1Words, ...a2Words]);
+    await storage.seedInsights(
+      [
+        for (final word in [...a1Words, ...a2Words])
+          WordInsight(wordId: word.id, definition: word.word, hasInsight: true),
+      ],
+      version: 'promotion-test',
+    );
+
+    for (final word in a1Words) {
+      await storage.recordSwipe(
+        word.id,
+        'right',
+        inputSource: 'button',
+        swipedAt: now,
+      );
+    }
+
+    final smartDeck = storage.getSmartDeck(now: now, limit: 10);
+    expect(smartDeck.metrics.targetLevel, 'A2');
+    expect(smartDeck.words.map((word) => word.cefrLevel).toSet(), contains('A2'));
+  });
 }

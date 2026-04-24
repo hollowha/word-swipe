@@ -1,10 +1,12 @@
 import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/smart_deck.dart';
+import '../models/study_constants.dart';
 import '../models/word.dart';
 import '../services/asset_service.dart';
 import '../services/storage_service.dart';
 
-enum StudyDeckMode { normal, reviewLeftSwiped }
+enum StudyDeckMode { smart, normal, reviewLeftSwiped }
 
 final assetServiceProvider = Provider<AssetService>((ref) => AssetService());
 
@@ -13,7 +15,7 @@ final storageServiceProvider = Provider<StorageService>((ref) => StorageService(
 /// null = all levels
 final selectedLevelProvider = StateProvider<String?>((ref) => 'A1');
 final studyDeckModeProvider =
-    StateProvider<StudyDeckMode>((ref) => StudyDeckMode.normal);
+    StateProvider<StudyDeckMode>((ref) => StudyDeckMode.smart);
 
 /// Whether seeding is complete
 final seedingProvider = FutureProvider<void>((ref) async {
@@ -22,15 +24,25 @@ final seedingProvider = FutureProvider<void>((ref) async {
   await storage.seedIfNeeded(assets);
 });
 
-/// The current shuffled deck (up to 200 cards), depends on selected level
+final smartDeckProvider = FutureProvider<SmartDeck>((ref) async {
+  await ref.watch(seedingProvider.future);
+  final storage = ref.read(storageServiceProvider);
+  return storage.getSmartDeck();
+});
+
+/// The current deck for the active study mode.
 final wordDeckProvider = FutureProvider<List<Word>>((ref) async {
   await ref.watch(seedingProvider.future);
   final level = ref.watch(selectedLevelProvider);
   final mode = ref.watch(studyDeckModeProvider);
   final storage = ref.read(storageServiceProvider);
+  if (mode == StudyDeckMode.smart) {
+    return storage.getSmartDeck().words;
+  }
+
   final words = mode == StudyDeckMode.reviewLeftSwiped
       ? storage.getReviewWordsByLevel(level)
       : storage.getStudyWordsByLevel(level);
   words.shuffle(Random());
-  return words.take(200).toList();
+  return words.take(manualDeckSize).toList();
 });
