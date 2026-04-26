@@ -7,4 +7,19 @@ class _NoOpHapticsService implements HapticsService {
 
   @override
   void vibrateLight() {}
+
+  @override
+  void success() {}
+
+  @override
+  void newWord() {}
+
+  @override
+  void combo() {}
+
+  @override
+  void levelUp() {}
+
+  @override
+  void questComplete() {}
 }

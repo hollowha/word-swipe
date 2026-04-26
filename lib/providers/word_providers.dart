@@ -4,6 +4,7 @@ import '../models/smart_deck.dart';
 import '../models/study_constants.dart';
 import '../models/word.dart';
 import '../services/asset_service.dart';
+import '../services/game_service.dart';
 import '../services/storage_service.dart';
 
 enum StudyDeckMode { smart, normal, reviewLeftSwiped }
@@ -11,6 +12,12 @@ enum StudyDeckMode { smart, normal, reviewLeftSwiped }
 final assetServiceProvider = Provider<AssetService>((ref) => AssetService());
 
 final storageServiceProvider = Provider<StorageService>((ref) => StorageService());
+final gameServiceProvider = Provider<GameService>((ref) => GameService());
+
+final gameProgressProvider = Provider((ref) {
+  final game = ref.read(gameServiceProvider);
+  return game.getProgress();
+});
 
 /// null = all levels
 final selectedLevelProvider = StateProvider<String?>((ref) => 'A1');

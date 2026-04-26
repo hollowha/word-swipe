@@ -40,3 +40,4 @@ flutter:
     - assets/insights/b2_insights.json
     - assets/insights/c1_insights.json
     - assets/insights/c2_insights.json
+    - assets/generated/

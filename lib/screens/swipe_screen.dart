@@ -6,9 +6,11 @@ import 'package:go_router/go_router.dart';
 
 import '../models/word.dart';
 import '../models/study_constants.dart';
+import '../models/smart_deck.dart';
 import '../providers/swipe_providers.dart';
 import '../providers/word_providers.dart';
 import '../theme.dart';
+import '../widgets/daily_quests_panel.dart';
 import '../widgets/swipe_buttons.dart';
 import '../widgets/today_status_panel.dart';
 import '../widgets/word_card_back.dart';
@@ -34,6 +36,8 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
     final swipeState = ref.watch(swipeProvider);
     final studyMode = ref.watch(studyDeckModeProvider);
     final smartDeckAsync = ref.watch(smartDeckProvider);
+    final gameProgress = ref.watch(gameProgressProvider);
+    final showQuestPanel = MediaQuery.sizeOf(context).height >= 720;
 
     return Scaffold(
       backgroundColor: AppTheme.bg,
@@ -67,6 +71,8 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
                     knowCount: swipeState.knowCount,
                     newCount: swipeState.newCount,
                     dueReviewCompleted: swipeState.dueReviewCompleted,
+                    xpToday: gameProgress.xpToday,
+                    streakCount: gameProgress.streakCount,
                     onReset: () {
                       ref.read(swipeProvider.notifier).reset();
                       ref.invalidate(smartDeckProvider);
@@ -83,19 +89,26 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
                       onDashboard: () => context.push('/dashboard'),
                     ),
                     if (studyMode == StudyDeckMode.smart)
-                      TodayStatusPanel(deckAsync: smartDeckAsync)
+                      TodayStatusPanel(
+                        deckAsync: smartDeckAsync,
+                        progress: gameProgress,
+                      )
                     else
                       _LevelTabs(selected: ref.watch(selectedLevelProvider)),
+                    if (studyMode == StudyDeckMode.smart && showQuestPanel)
+                      DailyQuestsPanel(progress: gameProgress),
                     Expanded(
                       child: _CardArea(
                         key: _cardAreaKey,
                         deck: deck,
+                        smartDeck: smartDeckAsync.valueOrNull,
                         currentIndex: swipeState.currentIndex,
                       ),
                     ),
                     _ProgressRow(
                       current: swipeState.currentIndex,
                       total: deck.length,
+                      xpGained: swipeState.xpGained,
                     ),
                     const SizedBox(height: 16),
                     SwipeButtons(
@@ -264,11 +277,13 @@ class _LevelTabs extends ConsumerWidget {
 
 class _CardArea extends ConsumerStatefulWidget {
   final List<Word> deck;
+  final SmartDeck? smartDeck;
   final int currentIndex;
 
   const _CardArea({
     super.key,
     required this.deck,
+    required this.smartDeck,
     required this.currentIndex,
   });
 
@@ -369,13 +384,14 @@ class _CardAreaState extends ConsumerState<_CardArea>
     final previousIndex = _topIndex;
     final word = widget.deck[previousIndex];
     final inputSource = _pendingInputSource;
-    ref.read(hapticsServiceProvider).vibrateLight();
     if (decision == _SwipeDirection.right) {
+      ref.read(hapticsServiceProvider).success();
       ref.read(swipeProvider.notifier).swipeRight(
             word,
             inputSource: inputSource.name,
           );
     } else {
+      ref.read(hapticsServiceProvider).newWord();
       ref.read(swipeProvider.notifier).swipeLeft(
             word,
             inputSource: inputSource.name,
@@ -522,6 +538,7 @@ class _CardAreaState extends ConsumerState<_CardArea>
                           overlayLabel: isRight ? 'KNOW' : 'NEW',
                           overlayColor:
                               isRight ? AppTheme.know : AppTheme.learning,
+                          reason: widget.smartDeck?.reasonFor(activeWord.id),
                         ),
                       ),
                     ),
@@ -579,6 +596,7 @@ class _ActiveWordCard extends ConsumerWidget {
   final double overlayOpacity;
   final String overlayLabel;
   final Color overlayColor;
+  final SmartDeckReason? reason;
 
   const _ActiveWordCard({
     super.key,
@@ -587,6 +605,7 @@ class _ActiveWordCard extends ConsumerWidget {
     required this.overlayOpacity,
     required this.overlayLabel,
     required this.overlayColor,
+    this.reason,
   });
 
   @override
@@ -630,7 +649,40 @@ class _ActiveWordCard extends ConsumerWidget {
                 ),
               ),
             ),
+          if (reason != null)
+            Positioned(
+              left: 18,
+              bottom: 18,
+              child: _ReasonChip(reason: reason!),
+            ),
         ],
+      ),
+    );
+  }
+}
+
+class _ReasonChip extends StatelessWidget {
+  final SmartDeckReason reason;
+
+  const _ReasonChip({required this.reason});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppTheme.ink.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          reason.label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
   }
@@ -677,8 +729,13 @@ class _SwipeOverlayLabel extends StatelessWidget {
 class _ProgressRow extends StatelessWidget {
   final int current;
   final int total;
+  final int xpGained;
 
-  const _ProgressRow({required this.current, required this.total});
+  const _ProgressRow({
+    required this.current,
+    required this.total,
+    required this.xpGained,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -698,7 +755,7 @@ class _ProgressRow extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '$current / $total',
+            xpGained > 0 ? '$current / $total   +$xpGained XP' : '$current / $total',
             style: const TextStyle(
               fontSize: 12,
               color: AppTheme.inkMuted,
@@ -809,6 +866,8 @@ class _CompletionView extends StatelessWidget {
   final int knowCount;
   final int newCount;
   final int dueReviewCompleted;
+  final int xpToday;
+  final int streakCount;
   final VoidCallback onReset;
   final VoidCallback onDashboard;
 
@@ -817,6 +876,8 @@ class _CompletionView extends StatelessWidget {
     required this.knowCount,
     required this.newCount,
     required this.dueReviewCompleted,
+    required this.xpToday,
+    required this.streakCount,
     required this.onReset,
     required this.onDashboard,
   });
@@ -830,16 +891,16 @@ class _CompletionView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppTheme.know.withValues(alpha: 0.1),
+              width: 112,
+              height: 112,
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.check_rounded,
-                size: 40,
-                color: AppTheme.know,
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/generated/word-guide-celebrate.png',
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -879,6 +940,22 @@ class _CompletionView extends StatelessWidget {
                   label: 'DUE DONE',
                   value: dueReviewCompleted,
                   color: AppTheme.ink,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                _SessionPill(
+                  label: 'XP TODAY',
+                  value: xpToday,
+                  color: AppTheme.know,
+                ),
+                const SizedBox(width: 8),
+                _SessionPill(
+                  label: 'STREAK',
+                  value: streakCount,
+                  color: AppTheme.cefrColor('B2'),
                 ),
               ],
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:word_swipe/models/smart_deck.dart';
+import 'package:word_swipe/models/game_progress.dart';
 import 'package:word_swipe/models/word.dart';
 import 'package:word_swipe/models/word_insight.dart';
 import 'package:word_swipe/providers/swipe_providers.dart';
@@ -15,10 +16,22 @@ void main() {
   testWidgets('home defaults to Today smart deck without level tabs', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(480, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final deck = SmartDeck(
-      words: [_alphaWord],
+      items: [
+        SmartDeckItem(
+          word: _alphaWord,
+          reason: SmartDeckReason.currentLevel,
+        ),
+      ],
       metrics: const SmartDeckMetrics(
         targetLevel: 'A1',
+        nextLevel: 'A2',
+        guidance: 'Current path: A1',
         dueReviewCount: 0,
         learningCount: 0,
         knowCount: 0,
@@ -32,6 +45,7 @@ void main() {
         overrides: [
           wordDeckProvider.overrideWith((ref) async => deck.words),
           smartDeckProvider.overrideWith((ref) async => deck),
+          gameProgressProvider.overrideWith((ref) => GameProgress()),
           wordInsightProvider.overrideWith((ref, wordId) => WordInsight.empty(wordId)),
           hapticsServiceProvider.overrideWithValue(_NoopHapticsService()),
         ],
@@ -43,7 +57,8 @@ void main() {
     await tester.pump();
 
     expect(find.text('Today smart deck'), findsOneWidget);
-    expect(find.text('LEVEL'), findsOneWidget);
+    expect(find.text('STREAK'), findsOneWidget);
+    expect(find.text('Swipe 10 cards'), findsOneWidget);
     expect(find.text('All'), findsNothing);
   });
 
@@ -52,6 +67,7 @@ void main() {
       ProviderScope(
         overrides: [
           storageServiceProvider.overrideWithValue(_FakeStorageService()),
+          gameProgressProvider.overrideWith((ref) => GameProgress()),
         ],
         child: const MaterialApp(home: DashboardScreen()),
       ),
@@ -73,6 +89,21 @@ final _alphaWord = Word(
 class _NoopHapticsService implements HapticsService {
   @override
   void vibrateLight() {}
+
+  @override
+  void success() {}
+
+  @override
+  void newWord() {}
+
+  @override
+  void combo() {}
+
+  @override
+  void levelUp() {}
+
+  @override
+  void questComplete() {}
 }
 
 class _FakeStorageService implements StorageService {
@@ -80,6 +111,8 @@ class _FakeStorageService implements StorageService {
   SmartDeckMetrics getSmartStats({DateTime? now}) {
     return const SmartDeckMetrics(
       targetLevel: 'B1',
+      nextLevel: 'B2',
+      guidance: 'Current path: B1 -> B2',
       dueReviewCount: 2,
       learningCount: 5,
       knowCount: 12,

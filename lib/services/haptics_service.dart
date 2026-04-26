@@ -5,4 +5,9 @@ abstract class HapticsService {
   factory HapticsService() => platform.createHapticsService();
 
   void vibrateLight();
+  void success();
+  void newWord();
+  void combo();
+  void levelUp();
+  void questComplete();
 }

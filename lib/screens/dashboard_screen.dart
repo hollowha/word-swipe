@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/swipe_providers.dart';
 import '../providers/word_providers.dart';
 import '../models/smart_deck.dart';
+import '../models/game_progress.dart';
 import '../models/study_constants.dart';
 import '../services/storage_service.dart';
 import '../theme.dart';
@@ -34,6 +35,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final recentWords = storage.getRecentWordSummaries(level: selectedLevel);
     final reviewWords = storage.getReviewWordSummaries(level: selectedLevel);
     final smartStats = storage.getSmartStats();
+    final gameProgress = ref.watch(gameProgressProvider);
 
     int totalFamiliar = 0;
     int totalSeen = 0;
@@ -117,6 +119,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     _DashboardTab.progress => _ProgressTab(
                         stats: stats,
                         smartStats: smartStats,
+                        gameProgress: gameProgress,
                         totalFamiliar: totalFamiliar,
                         totalSeen: totalSeen,
                         totalWords: totalWords,
@@ -179,15 +182,15 @@ class _DashboardTabs extends StatelessWidget {
       segments: const [
         ButtonSegment(
           value: _DashboardTab.progress,
-          label: Text('Progress'),
+          label: Text('Today'),
+        ),
+        ButtonSegment(
+          value: _DashboardTab.review,
+          label: Text('Path'),
         ),
         ButtonSegment(
           value: _DashboardTab.history,
           label: Text('History'),
-        ),
-        ButtonSegment(
-          value: _DashboardTab.review,
-          label: Text('Review'),
         ),
       ],
       style: SegmentedButton.styleFrom(
@@ -256,6 +259,7 @@ class _LevelFilterBar extends StatelessWidget {
 class _ProgressTab extends StatelessWidget {
   final Map<String, Map<String, int>> stats;
   final SmartDeckMetrics smartStats;
+  final GameProgress gameProgress;
   final int totalFamiliar;
   final int totalSeen;
   final int totalWords;
@@ -264,6 +268,7 @@ class _ProgressTab extends StatelessWidget {
   const _ProgressTab({
     required this.stats,
     required this.smartStats,
+    required this.gameProgress,
     required this.totalFamiliar,
     required this.totalSeen,
     required this.totalWords,
@@ -276,6 +281,8 @@ class _ProgressTab extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       children: [
         SmartPathCard(stats: smartStats),
+        const SizedBox(height: 12),
+        _WeeklySelfCard(progress: gameProgress),
         const SizedBox(height: 12),
         _HeroCard(
           familiar: totalFamiliar,
@@ -378,6 +385,90 @@ class _HistoryTab extends StatelessWidget {
                 ),
         ),
       ],
+    );
+  }
+}
+
+class _WeeklySelfCard extends StatelessWidget {
+  final GameProgress progress;
+
+  const _WeeklySelfCard({required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = progress.weeklyXpByDate.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    final lastSeven = entries.length > 7
+        ? entries.sublist(entries.length - 7)
+        : entries;
+    final maxXp = lastSeven.fold<int>(
+      1,
+      (max, entry) => entry.value > max ? entry.value : max,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFEEEEEC)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Weekly self league',
+            style: TextStyle(
+              color: AppTheme.ink,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            progress.xpToday > 0 ? 'You showed up today.' : 'One card keeps the streak alive.',
+            style: const TextStyle(color: AppTheme.inkSubtle, fontSize: 13),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              for (final entry in lastSeven)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 56 * (entry.value / maxXp).clamp(0.08, 1.0),
+                          decoration: BoxDecoration(
+                            color: AppTheme.know.withValues(alpha: 0.75),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          entry.key.substring(5),
+                          style: const TextStyle(
+                            color: AppTheme.inkMuted,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              if (lastSeven.isEmpty)
+                const Expanded(
+                  child: Text(
+                    'Your XP bars will appear after today’s deck.',
+                    style: TextStyle(color: AppTheme.inkMuted, fontSize: 12),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

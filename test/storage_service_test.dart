@@ -296,4 +296,80 @@ void main() {
     expect(smartDeck.metrics.targetLevel, 'A2');
     expect(smartDeck.words.map((word) => word.cefrLevel).toSet(), contains('A2'));
   });
+
+  test('smart level promotes from A2 to B1 after rolling KNOW streak', () async {
+    final now = DateTime(2026, 4, 25, 9);
+    final a2Words = List.generate(
+      12,
+      (index) => Word(id: 'a2_roll_$index', word: 'a2_roll_$index', cefrLevel: 'A2'),
+    );
+    final b1Words = List.generate(
+      4,
+      (index) => Word(id: 'b1_roll_$index', word: 'b1_roll_$index', cefrLevel: 'B1'),
+    );
+    await storage.seedWords([
+      ...List.generate(
+        12,
+        (index) => Word(id: 'a1_done_$index', word: 'a1_done_$index', cefrLevel: 'A1'),
+      ),
+      ...a2Words,
+      ...b1Words,
+    ]);
+    await storage.seedInsights(
+      [
+        for (final word in storage.words.values)
+          WordInsight(wordId: word.id, definition: word.word, hasInsight: true),
+      ],
+      version: 'rolling-test',
+    );
+
+    for (final word in storage.words.values.where((word) => word.cefrLevel == 'A1')) {
+      await storage.recordSwipe(word.id, 'right', inputSource: 'button', swipedAt: now);
+    }
+    for (var i = 0; i < a2Words.length; i++) {
+      await storage.recordSwipe(
+        a2Words[i].id,
+        i < 9 ? 'right' : 'left',
+        inputSource: 'button',
+        swipedAt: now.add(Duration(minutes: i)),
+      );
+    }
+
+    final smartDeck = storage.getSmartDeck(now: now, limit: 8);
+    expect(smartDeck.metrics.targetLevel, 'B1');
+    expect(smartDeck.metrics.guidance, contains('B1'));
+  });
+
+  test('smart level backs off when recent NEW count is high', () async {
+    final now = DateTime(2026, 4, 25, 9);
+    final a1Words = List.generate(
+      12,
+      (index) => Word(id: 'a1_easy_$index', word: 'a1_easy_$index', cefrLevel: 'A1'),
+    );
+    final a2Words = List.generate(
+      8,
+      (index) => Word(id: 'a2_hard_$index', word: 'a2_hard_$index', cefrLevel: 'A2'),
+    );
+    await storage.seedWords([...a1Words, ...a2Words]);
+    await storage.seedInsights(
+      [
+        for (final word in [...a1Words, ...a2Words])
+          WordInsight(wordId: word.id, definition: word.word, hasInsight: true),
+      ],
+      version: 'backoff-test',
+    );
+    for (final word in a1Words) {
+      await storage.recordSwipe(word.id, 'right', inputSource: 'button', swipedAt: now);
+    }
+    for (var i = 0; i < a2Words.length; i++) {
+      await storage.recordSwipe(
+        a2Words[i].id,
+        i < 4 ? 'left' : 'right',
+        inputSource: 'button',
+        swipedAt: now.add(Duration(minutes: i)),
+      );
+    }
+
+    expect(storage.getTargetLevel(now: now), 'A1');
+  });
 }
