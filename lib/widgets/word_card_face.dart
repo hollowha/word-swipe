@@ -30,7 +30,7 @@ class WordCardFace extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const SizedBox(),
+              _SpeakerButton(word: word.word),
               CefrBadge(level: word.cefrLevel),
             ],
           ),
@@ -62,6 +62,28 @@ class WordCardFace extends ConsumerWidget {
               ],
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _SpeakerButton extends ConsumerWidget {
+  final String word;
+
+  const _SpeakerButton({required this.word});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final speech = ref.watch(speechServiceProvider);
+    return IconButton(
+      tooltip: 'Pronounce',
+      onPressed: speech.isSupported ? () => speech.speak(word) : null,
+      icon: const Icon(Icons.volume_up_rounded, size: 20),
+      style: IconButton.styleFrom(
+        foregroundColor: AppTheme.inkSubtle,
+        backgroundColor: AppTheme.surfaceSubtle,
+        disabledForegroundColor: AppTheme.inkMuted,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }

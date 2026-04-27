@@ -47,6 +47,7 @@ class SwipeRecord extends HiveObject {
   bool get isFamiliar => rightCount > leftCount && rightCount > 0;
   bool get isSeen => totalSwipes > 0;
   bool get isLearning => leftCount > 0 && srsStep < 5;
+  bool get isMastered => srsStep >= 5 && consecutiveKnowCount >= 3;
   bool isDue(DateTime now) => dueAt != null && !dueAt!.isAfter(now);
   double get familiarityRatio =>
       totalSwipes == 0 ? 0.0 : rightCount / totalSwipes;

@@ -30,6 +30,24 @@ class Word extends HiveObject {
   @HiveField(7)
   bool definitionLoaded;
 
+  @HiveField(8, defaultValue: 0)
+  int frequencyRank;
+
+  @HiveField(9, defaultValue: 0.0)
+  double usefulnessScore;
+
+  @HiveField(10, defaultValue: <String>[])
+  List<String> sourceTags;
+
+  @HiveField(11, defaultValue: '')
+  String lemma;
+
+  @HiveField(12, defaultValue: false)
+  bool isCore;
+
+  @HiveField(13, defaultValue: <String>[])
+  List<String> qualityFlags;
+
   Word({
     required this.id,
     required this.word,
@@ -39,7 +57,14 @@ class Word extends HiveObject {
     this.definition = '',
     this.example = '',
     this.definitionLoaded = false,
-  });
+    this.frequencyRank = 0,
+    this.usefulnessScore = 0,
+    List<String>? sourceTags,
+    this.lemma = '',
+    this.isCore = false,
+    List<String>? qualityFlags,
+  })  : sourceTags = sourceTags ?? const [],
+        qualityFlags = qualityFlags ?? const [];
 
   factory Word.fromJson(Map<String, dynamic> json) => _$WordFromJson(json);
   Map<String, dynamic> toJson() => _$WordToJson(this);
@@ -50,6 +75,12 @@ class Word extends HiveObject {
     String? definition,
     String? example,
     bool? definitionLoaded,
+    int? frequencyRank,
+    double? usefulnessScore,
+    List<String>? sourceTags,
+    String? lemma,
+    bool? isCore,
+    List<String>? qualityFlags,
   }) {
     return Word(
       id: id,
@@ -60,6 +91,12 @@ class Word extends HiveObject {
       definition: definition ?? this.definition,
       example: example ?? this.example,
       definitionLoaded: definitionLoaded ?? this.definitionLoaded,
+      frequencyRank: frequencyRank ?? this.frequencyRank,
+      usefulnessScore: usefulnessScore ?? this.usefulnessScore,
+      sourceTags: sourceTags ?? this.sourceTags,
+      lemma: lemma ?? this.lemma,
+      isCore: isCore ?? this.isCore,
+      qualityFlags: qualityFlags ?? this.qualityFlags,
     );
   }
 }

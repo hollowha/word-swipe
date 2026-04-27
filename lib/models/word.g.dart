@@ -25,13 +25,19 @@ class WordAdapter extends TypeAdapter<Word> {
       definition: fields[5] as String,
       example: fields[6] as String,
       definitionLoaded: fields[7] as bool,
+      frequencyRank: fields[8] as int? ?? 0,
+      usefulnessScore: (fields[9] as num?)?.toDouble() ?? 0.0,
+      sourceTags: (fields[10] as List?)?.cast<String>(),
+      lemma: fields[11] as String? ?? '',
+      isCore: fields[12] as bool? ?? false,
+      qualityFlags: (fields[13] as List?)?.cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Word obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +53,19 @@ class WordAdapter extends TypeAdapter<Word> {
       ..writeByte(6)
       ..write(obj.example)
       ..writeByte(7)
-      ..write(obj.definitionLoaded);
+      ..write(obj.definitionLoaded)
+      ..writeByte(8)
+      ..write(obj.frequencyRank)
+      ..writeByte(9)
+      ..write(obj.usefulnessScore)
+      ..writeByte(10)
+      ..write(obj.sourceTags)
+      ..writeByte(11)
+      ..write(obj.lemma)
+      ..writeByte(12)
+      ..write(obj.isCore)
+      ..writeByte(13)
+      ..write(obj.qualityFlags);
   }
 
   @override
@@ -74,6 +92,16 @@ Word _$WordFromJson(Map<String, dynamic> json) => Word(
       definition: json['definition'] as String? ?? '',
       example: json['example'] as String? ?? '',
       definitionLoaded: json['definitionLoaded'] as bool? ?? false,
+      frequencyRank: (json['frequencyRank'] as num?)?.toInt() ?? 0,
+      usefulnessScore: (json['usefulnessScore'] as num?)?.toDouble() ?? 0,
+      sourceTags: (json['sourceTags'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      lemma: json['lemma'] as String? ?? '',
+      isCore: json['isCore'] as bool? ?? false,
+      qualityFlags: (json['qualityFlags'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$WordToJson(Word instance) => <String, dynamic>{
@@ -85,4 +113,10 @@ Map<String, dynamic> _$WordToJson(Word instance) => <String, dynamic>{
       'definition': instance.definition,
       'example': instance.example,
       'definitionLoaded': instance.definitionLoaded,
+      'frequencyRank': instance.frequencyRank,
+      'usefulnessScore': instance.usefulnessScore,
+      'sourceTags': instance.sourceTags,
+      'lemma': instance.lemma,
+      'isCore': instance.isCore,
+      'qualityFlags': instance.qualityFlags,
     };

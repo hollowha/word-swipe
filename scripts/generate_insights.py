@@ -23,6 +23,13 @@ INSIGHTS_DIR = ROOT / "assets" / "insights"
 WIKTAPI_BASE = "https://api.wiktapi.dev/v1/en/word"
 DICTIONARY_API_BASE = "https://api.dictionaryapi.dev/api/v2/entries/en"
 LEVELS = ("A1", "A2", "B1", "B2", "C1", "C2")
+BAD_GLYPHS = ("�", "阞", "伄", "繚", "臘", "疆", "刉", "簸", "帣", "?")
+BAD_DEFINITION_PATTERNS = (
+    re.compile(r"^plural of\b", re.I),
+    re.compile(r"^alternative letter-case form\b", re.I),
+    re.compile(r"^inflection of\b", re.I),
+    re.compile(r"\bfeminine singular of\b", re.I),
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -148,6 +155,34 @@ def fetch_json(session: requests.Session, url: str) -> Any:
     return response.json()
 
 
+def has_bad_glyphs(value: str) -> bool:
+    return any(glyph in value for glyph in BAD_GLYPHS)
+
+
+def is_quality_text(value: str) -> bool:
+    if not value or has_bad_glyphs(value):
+        return False
+    return not any(pattern.search(value) for pattern in BAD_DEFINITION_PATTERNS)
+
+
+def clean_fetched(parsed: dict[str, str]) -> dict[str, str]:
+    definition = parsed.get("definition", "")
+    if not is_quality_text(definition):
+        return {}
+    example = parsed.get("example", "")
+    if example and has_bad_glyphs(example):
+        example = ""
+    phonetic = parsed.get("phonetic", "")
+    if phonetic and has_bad_glyphs(phonetic):
+        phonetic = ""
+    return {
+        **parsed,
+        "phonetic": phonetic,
+        "definition": definition.strip(),
+        "example": example.strip(),
+    }
+
+
 def candidate_forms(raw: str) -> list[str]:
     word = raw.lower().strip()
     seen = {word}
@@ -230,14 +265,15 @@ def parse_wiktapi_entry(payload: Any) -> dict[str, str]:
                 if isinstance(candidate, str) and candidate:
                     example = candidate
                     break
-            if definition:
-                return {
+            parsed = clean_fetched({
                     "phonetic": phonetic,
                     "partOfSpeech": part_of_speech,
                     "definition": definition,
                     "example": example,
                     "source": "wiktapi",
-                }
+                })
+            if parsed:
+                return parsed
     return {}
 
 
@@ -258,14 +294,15 @@ def parse_dictionary_api_entry(payload: Any) -> dict[str, str]:
             for definition_entry in definitions:
                 definition = definition_entry.get("definition", "") or ""
                 example = definition_entry.get("example", "") or ""
-                if definition:
-                    return {
+                parsed = clean_fetched({
                         "phonetic": phonetic,
                         "partOfSpeech": meaning.get("partOfSpeech", "") or "",
                         "definition": definition,
                         "example": example,
                         "source": "dictionaryapi",
-                    }
+                    })
+                if parsed:
+                    return parsed
     return {}
 
 
@@ -317,6 +354,9 @@ def build_insight(
         }
     )
     morphemes = morpheme_index.get(word, [])
+    quality_flags = list(word_record.get("qualityFlags", []))
+    if fetched["definition"] == "":
+        quality_flags.append("missing-definition")
 
     return {
         "wordId": word_record["id"],
@@ -327,6 +367,7 @@ def build_insight(
         "source": fetched["source"],
         "hasInsight": bool(fetched["definition"] or morphemes),
         "morphemes": morphemes,
+        "qualityFlags": quality_flags,
     }
 
 

@@ -6,6 +6,7 @@ import '../models/word_insight.dart';
 import '../services/dictionary_service.dart';
 import '../services/game_service.dart';
 import '../services/haptics_service.dart';
+import '../services/speech_service.dart';
 import '../services/storage_service.dart';
 import 'word_providers.dart';
 
@@ -152,6 +153,7 @@ final swipeRecordProvider = Provider.family<SwipeRecord, String>((ref, wordId) {
 final dictionaryServiceProvider =
     Provider<DictionaryService>((ref) => DictionaryService());
 final hapticsServiceProvider = Provider<HapticsService>((ref) => HapticsService());
+final speechServiceProvider = Provider<SpeechService>((ref) => SpeechService());
 
 final wordInsightProvider = Provider.family<WordInsight, String>((ref, wordId) {
   final storage = ref.read(storageServiceProvider);

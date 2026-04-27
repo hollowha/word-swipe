@@ -31,6 +31,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final storage = ref.read(storageServiceProvider);
     final selectedLevel = ref.watch(selectedLevelProvider);
     final stats = storage.getStats();
+    final progressStats = storage.getProgressStats();
     final historyEvents = storage.getSwipeEventEntries(level: selectedLevel);
     final recentWords = storage.getRecentWordSummaries(level: selectedLevel);
     final reviewWords = storage.getReviewWordSummaries(level: selectedLevel);
@@ -118,6 +119,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   child: switch (_selectedTab) {
                     _DashboardTab.progress => _ProgressTab(
                         stats: stats,
+                        progressStats: progressStats,
                         smartStats: smartStats,
                         gameProgress: gameProgress,
                         totalFamiliar: totalFamiliar,
@@ -258,6 +260,7 @@ class _LevelFilterBar extends StatelessWidget {
 
 class _ProgressTab extends StatelessWidget {
   final Map<String, Map<String, int>> stats;
+  final Map<String, LevelProgressStats> progressStats;
   final SmartDeckMetrics smartStats;
   final GameProgress gameProgress;
   final int totalFamiliar;
@@ -267,6 +270,7 @@ class _ProgressTab extends StatelessWidget {
 
   const _ProgressTab({
     required this.stats,
+    required this.progressStats,
     required this.smartStats,
     required this.gameProgress,
     required this.totalFamiliar,
@@ -304,6 +308,7 @@ class _ProgressTab extends StatelessWidget {
         ),
         ...cefrLevels.map((level) {
           final s = stats[level] ?? {'total': 0, 'seen': 0, 'familiar': 0};
+          final p = progressStats[level];
           return Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: _LevelRow(
@@ -311,6 +316,10 @@ class _ProgressTab extends StatelessWidget {
               total: s['total'] as int,
               seen: s['seen'] as int,
               familiar: s['familiar'] as int,
+              newCount: p?.newCount ?? 0,
+              due: p?.due ?? 0,
+              unseen: p?.unseen ?? 0,
+              mastered: p?.mastered ?? 0,
               onStudy: () => onStudyLevel(level),
             ),
           );
@@ -628,6 +637,10 @@ class _LevelRow extends StatelessWidget {
   final int total;
   final int seen;
   final int familiar;
+  final int newCount;
+  final int due;
+  final int unseen;
+  final int mastered;
   final VoidCallback onStudy;
 
   const _LevelRow({
@@ -635,6 +648,10 @@ class _LevelRow extends StatelessWidget {
     required this.total,
     required this.seen,
     required this.familiar,
+    required this.newCount,
+    required this.due,
+    required this.unseen,
+    required this.mastered,
     required this.onStudy,
   });
 
@@ -658,7 +675,7 @@ class _LevelRow extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  '$familiar familiar',
+                  '$familiar familiar / $mastered mastered',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -713,7 +730,7 @@ class _LevelRow extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '$seen of $total seen',
+                '$seen seen · $newCount new · $due due',
                 style: const TextStyle(
                   fontSize: 11,
                   color: AppTheme.inkMuted,
@@ -721,7 +738,7 @@ class _LevelRow extends StatelessWidget {
                 ),
               ),
               Text(
-                '${total - seen} remaining',
+                '$unseen unseen',
                 style: const TextStyle(
                   fontSize: 11,
                   color: AppTheme.inkMuted,

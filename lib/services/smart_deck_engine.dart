@@ -105,10 +105,15 @@ class SmartDeckEngine {
       }
     }
 
-    due.sort((a, b) => _dueAt(records, a).compareTo(_dueAt(records, b)));
-    currentNew.sort(_byWordId);
-    easier.sort(_byWordId);
-    challenge.sort(_byWordId);
+    final seed = _dailySeed(now, targetLevel);
+    due.sort((a, b) {
+      final dueCompare = _dueAt(records, a).compareTo(_dueAt(records, b));
+      if (dueCompare != 0) return dueCompare;
+      return _dailyRank(a, seed).compareTo(_dailyRank(b, seed));
+    });
+    currentNew.sort((a, b) => _priorityRank(a, seed).compareTo(_priorityRank(b, seed)));
+    easier.sort((a, b) => _priorityRank(a, seed + 17).compareTo(_priorityRank(b, seed + 17)));
+    challenge.sort((a, b) => _priorityRank(a, seed + 31).compareTo(_priorityRank(b, seed + 31)));
 
     final items = <SmartDeckItem>[];
     final ids = <String>{};
@@ -125,11 +130,11 @@ class SmartDeckEngine {
     addSome(due, 4, SmartDeckReason.dueReview);
     addSome(currentNew, 5, SmartDeckReason.currentLevel);
     addSome(challenge, 2, SmartDeckReason.challenge);
-    addSome(easier.reversed.toList(), 1, SmartDeckReason.warmUp);
+    addSome(easier, 1, SmartDeckReason.warmUp);
     addSome(due, limit - items.length, SmartDeckReason.dueReview);
     addSome(currentNew, limit - items.length, SmartDeckReason.currentLevel);
     addSome(challenge, limit - items.length, SmartDeckReason.challenge);
-    addSome(easier.reversed.toList(), limit - items.length, SmartDeckReason.warmUp);
+    addSome(easier, limit - items.length, SmartDeckReason.warmUp);
     return items;
   }
 
@@ -150,5 +155,26 @@ class SmartDeckEngine {
   DateTime _dueAt(Map<String, SwipeRecord> records, Word word) =>
       records[word.id]?.dueAt ?? DateTime.fromMillisecondsSinceEpoch(0);
 
-  int _byWordId(Word a, Word b) => a.id.compareTo(b.id);
+  int _dailySeed(DateTime date, String level) {
+    final day = DateTime(date.year, date.month, date.day);
+    return day.millisecondsSinceEpoch ~/ Duration.millisecondsPerDay +
+        level.codeUnits.fold<int>(0, (sum, value) => sum + value);
+  }
+
+  int _priorityRank(Word word, int seed) {
+    final rank = word.frequencyRank <= 0 ? 999999 : word.frequencyRank;
+    final coreBonus = word.isCore ? -1500 : 0;
+    final qualityPenalty = word.qualityFlags.length * 4000;
+    final randomSpread = _dailyRank(word, seed) % 10000;
+    return rank + coreBonus + qualityPenalty + randomSpread;
+  }
+
+  int _dailyRank(Word word, int seed) {
+    var hash = 0x811C9DC5 ^ seed;
+    for (final unit in word.id.codeUnits) {
+      hash ^= unit;
+      hash = (hash * 0x01000193) & 0x7fffffff;
+    }
+    return hash;
+  }
 }

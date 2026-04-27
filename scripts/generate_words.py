@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 generate_words.py
-Generates 20,000 CEFR-classified English words as split JSON asset files.
+Generates scored CEFR-classified English word assets.
 Output: assets/words/{a1,a2,b1,b2,c1,c2}_words.json
 
 Requirements: pip install requests
@@ -28,6 +28,18 @@ TARGETS = {
     'B2': 5000,
     'C1': 4000,
     'C2': 3000,
+}
+
+SHORT_ALLOWLIST = {
+    'am', 'an', 'as', 'at', 'be', 'by', 'do', 'go', 'he', 'hi', 'if', 'in',
+    'is', 'it', 'me', 'my', 'no', 'of', 'oh', 'ok', 'on', 'or', 'so', 'to',
+    'up', 'us', 'we',
+}
+
+PROPER_NAME_DENYLIST = {
+    'aaron', 'abby', 'abbott', 'abe', 'abel', 'abigail', 'aang', 'abba',
+    'abbas', 'abbie', 'abbi', 'aaliyah', 'aamir', 'aarav', 'aarhus',
+    'aaronson',
 }
 
 # Frequency rank → CEFR level cutoffs
@@ -58,6 +70,8 @@ def normalize(w: str) -> str:
 
 
 def is_valid(w: str) -> bool:
+    if len(w) <= 2 and w not in SHORT_ALLOWLIST:
+        return False
     return (
         2 <= len(w) <= 30
         and bool(re.match(r'^[a-z][a-z\'\-]*[a-z]$', w))
@@ -116,6 +130,12 @@ def is_truncated_contraction(word: str) -> bool:
 def is_noise_token(word: str, denylist: set[str]) -> bool:
     if word in denylist:
         return True
+    if word in PROPER_NAME_DENYLIST:
+        return True
+    if '--' in word:
+        return True
+    if re.fullmatch(r'(?:[a-z]+-){2,}[a-z]+', word) and len(word) < 8:
+        return True
     if is_truncated_contraction(word):
         return True
     if is_fragmented_spoken_form(word):
@@ -133,7 +153,7 @@ def frequency_to_cefr(rank: int) -> str:
 
 
 def load_frequency_list() -> dict:
-    """Returns {word: cefr_level} from frequency-ranked word list."""
+    """Returns {word: metadata} from a subtitle frequency-ranked word list."""
     print(f'Downloading frequency list from {FREQ_LIST_URL} ...')
     try:
         resp = requests.get(FREQ_LIST_URL, timeout=60)
@@ -149,7 +169,14 @@ def load_frequency_list() -> dict:
             continue
         word = normalize(parts[0])
         if word and is_valid(word) and word not in result:
-            result[word] = frequency_to_cefr(rank)
+            count = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
+            result[word] = {
+                'level': frequency_to_cefr(rank),
+                'frequencyRank': rank,
+                'subtitleCount': count,
+                'sourceTags': ['opensubtitles2018'],
+                'isCore': False,
+            }
 
     print(f'  Loaded {len(result)} words from frequency list.')
     return result
@@ -178,28 +205,83 @@ def load_oxford_overrides() -> dict:
     return {}
 
 
+def usefulness_score(word: str, record: dict) -> float:
+    rank = record.get('frequencyRank') or 70000
+    score = max(0.0, 100.0 - (rank / 700.0))
+    if record.get('isCore'):
+        score += 45
+    if 'oxford5000' in record.get('sourceTags', []):
+        score += 30
+    if '-' in word or "'" in word:
+        score -= 8
+    if len(word) <= 2:
+        score -= 6
+    score -= len(record.get('qualityFlags', [])) * 12
+    return round(max(score, 0.0), 3)
+
+
+def quality_flags(word: str) -> list[str]:
+    flags = []
+    if '-' in word:
+        flags.append('hyphenated')
+    if "'" in word:
+        flags.append('apostrophe')
+    if len(word) <= 2:
+        flags.append('short-token')
+    return flags
+
+
 def build_word_set(freq: dict, oxford: dict, denylist: set[str]) -> dict:
-    """Merge sources (Oxford takes priority), cap at TARGETS."""
-    merged = {
-        word: level
-        for word, level in {**freq, **oxford}.items()  # Oxford overrides freq
-        if not is_noise_token(word, denylist)
-    }
+    """Merge sources, score usefulness, then cap each CEFR level."""
+    merged = {}
+    for word, record in freq.items():
+        if is_noise_token(word, denylist):
+            continue
+        merged[word] = dict(record)
+
+    for word, level in oxford.items():
+        if is_noise_token(word, denylist):
+            continue
+        record = merged.setdefault(
+            word,
+            {
+                'level': level,
+                'frequencyRank': 0,
+                'subtitleCount': 0,
+                'sourceTags': [],
+                'isCore': True,
+            },
+        )
+        record['level'] = level
+        record['isCore'] = True
+        if 'oxford5000' not in record['sourceTags']:
+            record['sourceTags'].append('oxford5000')
+        record['qualityFlags'] = quality_flags(word)
+        record['usefulnessScore'] = usefulness_score(word, record)
 
     by_level = defaultdict(list)
-    for word, level in merged.items():
-        by_level[level].append(word)
+    for word, record in merged.items():
+        record.setdefault('qualityFlags', quality_flags(word))
+        record['usefulnessScore'] = usefulness_score(word, record)
+        by_level[record['level']].append((word, record))
 
     result = {}
     for level, target in TARGETS.items():
-        words = sorted(set(by_level.get(level, [])))
-        if len(words) < target:
-            print(f'  WARNING: {level} has {len(words)} words (target={target})')
-        result[level] = words[:target]
+        records = sorted(
+            by_level.get(level, []),
+            key=lambda item: (
+                -item[1]['usefulnessScore'],
+                item[1].get('frequencyRank') or 999999,
+                item[0],
+            ),
+        )
+        if len(records) < target:
+            print(f'  WARNING: {level} has {len(records)} words (target={target})')
+        result[level] = records[:target]
     return result
 
 
-def make_entry(word: str, level: str) -> dict:
+def make_entry(word: str, level: str, record: dict) -> dict:
     return {
         'id': word,
         'word': word,
@@ -209,6 +291,12 @@ def make_entry(word: str, level: str) -> dict:
         'definition': '',
         'example': '',
         'definitionLoaded': False,
+        'frequencyRank': record.get('frequencyRank') or 0,
+        'usefulnessScore': record.get('usefulnessScore') or 0,
+        'sourceTags': record.get('sourceTags') or [],
+        'lemma': word,
+        'isCore': bool(record.get('isCore')),
+        'qualityFlags': record.get('qualityFlags') or [],
     }
 
 
@@ -227,12 +315,12 @@ def main():
     word_set = build_word_set(freq, oxford, denylist)
 
     total = 0
-    for level, words in word_set.items():
+    for level, records in word_set.items():
         path = OUTPUT_DIR / f'{level.lower()}_words.json'
-        data = [make_entry(w, level) for w in words]
+        data = [make_entry(word, level, record) for word, record in records]
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
-        print(f'  Wrote {path.name}: {len(words)} words')
-        total += len(words)
+        print(f'  Wrote {path.name}: {len(records)} words')
+        total += len(records)
 
     if total == 0:
         raise SystemExit(

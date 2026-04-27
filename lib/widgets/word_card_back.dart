@@ -59,6 +59,23 @@ class _Content extends StatelessWidget {
                 ),
               ),
             ),
+            IconButton(
+              tooltip: 'Pronounce',
+              onPressed: () {
+                // The service no-ops on unsupported platforms.
+                final container = ProviderScope.containerOf(context);
+                final speech = container.read(speechServiceProvider);
+                if (speech.isSupported) speech.speak(word.word);
+              },
+              icon: const Icon(Icons.volume_up_rounded, size: 20),
+              style: IconButton.styleFrom(
+                foregroundColor: AppTheme.inkSubtle,
+                backgroundColor: AppTheme.surfaceSubtle,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
             const SizedBox(width: 12),
             CefrBadge(level: word.cefrLevel),
           ],

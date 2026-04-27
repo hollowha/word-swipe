@@ -86,6 +86,8 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
                   children: [
                     _TopBar(
                       studyMode: studyMode,
+                      onModes: () => context.push('/modes'),
+                      onLibrary: () => context.push('/library'),
                       onDashboard: () => context.push('/dashboard'),
                     ),
                     if (studyMode == StudyDeckMode.smart)
@@ -137,10 +139,14 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
 
 class _TopBar extends StatelessWidget {
   final StudyDeckMode studyMode;
+  final VoidCallback onModes;
+  final VoidCallback onLibrary;
   final VoidCallback onDashboard;
 
   const _TopBar({
     required this.studyMode,
+    required this.onModes,
+    required this.onLibrary,
     required this.onDashboard,
   });
 
@@ -204,6 +210,35 @@ class _TopBar extends StatelessWidget {
           ),
           const Spacer(),
           IconButton(
+            tooltip: 'Practice modes',
+            onPressed: onModes,
+            icon: const Icon(Icons.apps_rounded, size: 23),
+            style: IconButton.styleFrom(
+              foregroundColor: AppTheme.inkSubtle,
+              backgroundColor: AppTheme.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(8),
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            tooltip: 'Word library',
+            onPressed: onLibrary,
+            icon: const Icon(Icons.manage_search_rounded, size: 23),
+            style: IconButton.styleFrom(
+              foregroundColor: AppTheme.inkSubtle,
+              backgroundColor: AppTheme.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(8),
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            tooltip: 'Dashboard',
             onPressed: onDashboard,
             icon: const Icon(Icons.bar_chart_rounded, size: 24),
             style: IconButton.styleFrom(

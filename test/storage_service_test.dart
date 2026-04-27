@@ -7,6 +7,7 @@ import 'package:word_swipe/models/swipe_event.dart';
 import 'package:word_swipe/models/swipe_record.dart';
 import 'package:word_swipe/models/word.dart';
 import 'package:word_swipe/models/word_insight.dart';
+import 'package:word_swipe/models/progress_bucket.dart';
 import 'package:word_swipe/services/storage_service.dart';
 
 void main() {
@@ -262,6 +263,89 @@ void main() {
     expect(smartDeck.words.map((word) => word.id), isNot(contains('later')));
     expect(smartDeck.metrics.dueReviewCount, 1);
     expect(smartDeck.metrics.learningCount, 2);
+  });
+
+  test('smart deck fresh words use stable daily weighted shuffle', () async {
+    final now = DateTime(2026, 4, 25, 9);
+    final words = List.generate(
+      16,
+      (index) => Word(
+        id: 'word_${index.toString().padLeft(2, '0')}',
+        word: 'word${index.toString().padLeft(2, '0')}',
+        cefrLevel: 'A1',
+        frequencyRank: index + 1,
+      ),
+    );
+    await storage.seedWords(words);
+    await storage.seedInsights(
+      [
+        for (final word in words)
+          WordInsight(wordId: word.id, definition: word.word, hasInsight: true),
+      ],
+      version: 'shuffle-test',
+    );
+
+    final first = storage.getSmartDeck(now: now, limit: 8).words.map((word) => word.id).toList();
+    final second = storage.getSmartDeck(now: now, limit: 8).words.map((word) => word.id).toList();
+    final tomorrow = storage
+        .getSmartDeck(now: now.add(const Duration(days: 1)), limit: 8)
+        .words
+        .map((word) => word.id)
+        .toList();
+
+    expect(first, second);
+    expect(first, isNot(words.take(8).map((word) => word.id).toList()));
+    expect(first, isNot(tomorrow));
+  });
+
+  test('progress stats expose unseen new learning due know and mastered buckets', () async {
+    final now = DateTime(2026, 4, 25, 9);
+    await storage.seedWords([
+      Word(id: 'unseen', word: 'unseen', cefrLevel: 'A1'),
+      Word(id: 'new', word: 'new', cefrLevel: 'A1'),
+      Word(id: 'learning', word: 'learning', cefrLevel: 'A1'),
+      Word(id: 'due', word: 'due', cefrLevel: 'A1'),
+      Word(id: 'know', word: 'know', cefrLevel: 'A1'),
+      Word(id: 'mastered', word: 'mastered', cefrLevel: 'A1'),
+    ]);
+
+    await storage.swipes.putAll({
+      'new': SwipeRecord(wordId: 'new', leftCount: 1, srsStep: 0),
+      'learning': SwipeRecord(
+        wordId: 'learning',
+        leftCount: 1,
+        srsStep: 1,
+        dueAt: now.add(const Duration(days: 1)),
+      ),
+      'due': SwipeRecord(
+        wordId: 'due',
+        leftCount: 1,
+        srsStep: 1,
+        dueAt: now.subtract(const Duration(hours: 1)),
+      ),
+      'know': SwipeRecord(wordId: 'know', rightCount: 1),
+      'mastered': SwipeRecord(
+        wordId: 'mastered',
+        rightCount: 5,
+        srsStep: 5,
+        consecutiveKnowCount: 3,
+      ),
+    });
+
+    final stats = storage.getProgressStats(now: now)['A1']!;
+    expect(stats.unseen, 1);
+    expect(stats.newCount, 1);
+    expect(stats.learning, 1);
+    expect(stats.due, 1);
+    expect(stats.know, 1);
+    expect(stats.mastered, 1);
+
+    final dueEntries = storage.getLibraryEntries(
+      level: 'A1',
+      bucket: ProgressBucket.due,
+      now: now,
+    );
+    expect(dueEntries.map((entry) => entry.word.id), ['due']);
   });
 
   test('smart deck moves to the next level after enough strong A1 swipes', () async {

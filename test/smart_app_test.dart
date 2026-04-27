@@ -3,12 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:word_swipe/models/smart_deck.dart';
 import 'package:word_swipe/models/game_progress.dart';
+import 'package:word_swipe/models/progress_bucket.dart';
+import 'package:word_swipe/models/study_mode.dart';
 import 'package:word_swipe/models/word.dart';
 import 'package:word_swipe/models/word_insight.dart';
+import 'package:word_swipe/screens/mode_hub_screen.dart';
 import 'package:word_swipe/providers/swipe_providers.dart';
 import 'package:word_swipe/providers/word_providers.dart';
 import 'package:word_swipe/screens/dashboard_screen.dart';
+import 'package:word_swipe/screens/study_mode_screen.dart';
 import 'package:word_swipe/screens/swipe_screen.dart';
+import 'package:word_swipe/screens/word_library_screen.dart';
 import 'package:word_swipe/services/haptics_service.dart';
 import 'package:word_swipe/services/storage_service.dart';
 
@@ -78,6 +83,98 @@ void main() {
     expect(find.text('Due'), findsOneWidget);
     expect(find.text('Learning'), findsOneWidget);
   });
+
+  testWidgets('mode hub exposes core study modes', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          hasPlacementProvider.overrideWithValue(false),
+        ],
+        child: const MaterialApp(home: ModeHubScreen()),
+      ),
+    );
+
+    expect(find.text('Smart Swipe'), findsOneWidget);
+    expect(find.text('Flashcards'), findsOneWidget);
+    expect(find.text('Learn Quiz'), findsOneWidget);
+    expect(find.text('Type Answer'), findsOneWidget);
+    expect(find.text('Match'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Test'),
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Test'), findsOneWidget);
+  });
+
+  testWidgets('flashcard mode renders a reusable study deck', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          modeDeckProvider.overrideWith((ref) async => [_alphaWord]),
+          wordInsightProvider.overrideWith(
+            (ref, wordId) => const WordInsight(
+              wordId: 'alpha',
+              phonetic: '/alfa/',
+              definition: 'the first letter in the Greek alphabet',
+              hasInsight: true,
+            ),
+          ),
+        ],
+        child: const MaterialApp(
+          home: StudyModeScreen(mode: StudyMode.flashcards),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Flashcards'), findsOneWidget);
+    expect(find.text('alpha'), findsOneWidget);
+    expect(find.text('KNOW'), findsOneWidget);
+  });
+
+  testWidgets('word library renders progress filters and entries', (tester) async {
+    final stats = {
+      for (final level in ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])
+        level: LevelProgressStats(
+          level: level,
+          total: 1,
+          unseen: level == 'A1' ? 0 : 1,
+          newCount: 0,
+          learning: 0,
+          know: level == 'A1' ? 1 : 0,
+          due: 0,
+          mastered: 0,
+        ),
+    };
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          progressStatsProvider.overrideWithValue(stats),
+          libraryEntriesProvider.overrideWithValue([
+            LibraryWordEntry(
+              word: _alphaWord,
+              record: null,
+              insight: const WordInsight(
+                wordId: 'alpha',
+                definition: 'the first letter in the Greek alphabet',
+                hasInsight: true,
+              ),
+              bucket: ProgressBucket.know,
+            ),
+          ]),
+        ],
+        child: const MaterialApp(home: WordLibraryScreen()),
+      ),
+    );
+
+    expect(find.text('Word Library'), findsOneWidget);
+    expect(find.text('Know'), findsWidgets);
+    expect(find.text('alpha'), findsOneWidget);
+  });
 }
 
 final _alphaWord = Word(
@@ -126,6 +223,23 @@ class _FakeStorageService implements StorageService {
     return {
       for (final level in ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])
         level: {'total': 10, 'seen': 2, 'familiar': 1},
+    };
+  }
+
+  @override
+  Map<String, LevelProgressStats> getProgressStats({DateTime? now}) {
+    return {
+      for (final level in ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])
+        level: LevelProgressStats(
+          level: level,
+          total: 10,
+          unseen: 8,
+          newCount: 1,
+          learning: 0,
+          know: 1,
+          due: 0,
+          mastered: 0,
+        ),
     };
   }
 
